@@ -17,5 +17,12 @@ function configureRoutes() {
         order: 1,
         layout: eLayoutType.application,
       },
+      {
+        path: '/todos',
+        name: '::Navigation:TodoList',  // Demo :: syntax in navigation
+        iconClass: 'fas fa-tasks',
+        order: 2,
+        layout: eLayoutType.application,
+      },
   ]);
 }

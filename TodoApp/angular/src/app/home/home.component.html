@@ -4,10 +4,19 @@
       <div class="card-body">
         <div class="starting-content pe-5">
           @if(!hasLoggedIn){
-          <h3>Welcome</h3>
+          <h3>{{ '::Welcome' | abpLocalization }}</h3>
           <p class="lead text-muted mb-2">
             {{ '::LongWelcomeMessage' | abpLocalization }}
           </p>
+          <!-- Demo :: syntax examples -->
+          <div class="alert alert-info">
+            <h6>🌍 Localization Examples:</h6>
+            <ul class="mb-0">
+              <li><strong>App Resource:</strong> {{ '::Page:Title' | abpLocalization }}</li>
+              <li><strong>Navigation:</strong> {{ '::Navigation:TodoList' | abpLocalization }}</li>
+              <li><strong>External Resource:</strong> {{ 'AbpAccount::Login' | abpLocalization }}</li>
+            </ul>
+          </div>
           <a (click)="login()" class="px-4 btn btn-primary mb-4" role="button">
             <i class="fa fa-sign-in"></i>
             {{ 'AbpAccount::Login' | abpLocalization }}

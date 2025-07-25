@@ -37,6 +37,13 @@
     "Unspecified": "Sistema",
     "SeeAllUsers": "Ver todos los usuarios",
     "TakePhoto": "Tomar foto",
-    "ChoosePhoto": "Escoge una foto"
+    "ChoosePhoto": "Escoge una foto",
+    "TodoItem:Created": "Elemento de tarea creado exitosamente",
+    "TodoItem:Deleted": "Elemento de tarea eliminado exitosamente",
+    "TodoItem:NotFound": "Elemento de tarea con ID {0} no encontrado",
+    "TodoItem:Text:Required": "El texto de la tarea es requerido",
+    "TodoItem:List": "Elementos de Tarea",
+    "Navigation:TodoList": "Lista de Tareas",
+    "Page:Title": "Mi Aplicación de Tareas"
   }
 }

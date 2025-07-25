@@ -10,22 +10,20 @@ using Volo.Abp.TenantManagement;
 namespace TodoApp;
 
 [DependsOn(
-    typeof(TodoAppDomainModule),
-    typeof(TodoAppApplicationContractsModule),
-    typeof(AbpPermissionManagementApplicationModule),
-    typeof(AbpFeatureManagementApplicationModule),
-    typeof(AbpIdentityApplicationModule),
-    typeof(AbpAccountApplicationModule),
-    typeof(AbpTenantManagementApplicationModule),
-    typeof(AbpSettingManagementApplicationModule)
-    )]
+	typeof(TodoAppDomainModule),
+	typeof(TodoAppApplicationContractsModule),
+	typeof(AbpPermissionManagementApplicationModule),
+	typeof(AbpFeatureManagementApplicationModule),
+	typeof(AbpIdentityApplicationModule),
+	typeof(AbpAccountApplicationModule),
+	typeof(AbpTenantManagementApplicationModule),
+	typeof(AbpSettingManagementApplicationModule),
+	typeof(AbpAutoMapperModule)
+)]
 public class TodoAppApplicationModule : AbpModule
 {
-    public override void ConfigureServices(ServiceConfigurationContext context)
-    {
-        Configure<AbpAutoMapperOptions>(options =>
-        {
-            options.AddMaps<TodoAppApplicationModule>();
-        });
-    }
+	public override void ConfigureServices(ServiceConfigurationContext context)
+	{
+		Configure<AbpAutoMapperOptions>(options => { options.AddMaps<TodoAppApplicationModule>(); });
+	}
 }
