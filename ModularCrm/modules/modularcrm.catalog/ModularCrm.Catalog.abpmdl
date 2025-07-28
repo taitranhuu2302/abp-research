@@ -1,0 +1,58 @@
+{
+  "folders": {
+    "items": {
+      "src": {},
+      "test": {}
+    }
+  },
+  "packages": {
+    "ModularCrm.Catalog.Domain": {
+      "path": "src/ModularCrm.Catalog.Domain/ModularCrm.Catalog.Domain.abppkg",
+      "folder": "src"
+    },
+    "ModularCrm.Catalog.Application.Contracts": {
+      "path": "src/ModularCrm.Catalog.Application.Contracts/ModularCrm.Catalog.Application.Contracts.abppkg",
+      "folder": "src"
+    },
+    "ModularCrm.Catalog.Application": {
+      "path": "src/ModularCrm.Catalog.Application/ModularCrm.Catalog.Application.abppkg",
+      "folder": "src"
+    },
+    "ModularCrm.Catalog.EntityFrameworkCore": {
+      "path": "src/ModularCrm.Catalog.EntityFrameworkCore/ModularCrm.Catalog.EntityFrameworkCore.abppkg",
+      "folder": "src"
+    },
+    "ModularCrm.Catalog.HttpApi": {
+      "path": "src/ModularCrm.Catalog.HttpApi/ModularCrm.Catalog.HttpApi.abppkg",
+      "folder": "src"
+    },
+    "ModularCrm.Catalog.HttpApi.Client": {
+      "path": "src/ModularCrm.Catalog.HttpApi.Client/ModularCrm.Catalog.HttpApi.Client.abppkg",
+      "folder": "src"
+    },
+    "ModularCrm.Catalog.TestBase": {
+      "path": "test/ModularCrm.Catalog.TestBase/ModularCrm.Catalog.TestBase.abppkg",
+      "folder": "test"
+    },
+    "ModularCrm.Catalog.EntityFrameworkCore.Tests": {
+      "path": "test/ModularCrm.Catalog.EntityFrameworkCore.Tests/ModularCrm.Catalog.EntityFrameworkCore.Tests.abppkg",
+      "folder": "test"
+    },
+    "ModularCrm.Catalog.Domain.Tests": {
+      "path": "test/ModularCrm.Catalog.Domain.Tests/ModularCrm.Catalog.Domain.Tests.abppkg",
+      "folder": "test"
+    },
+    "ModularCrm.Catalog.Application.Tests": {
+      "path": "test/ModularCrm.Catalog.Application.Tests/ModularCrm.Catalog.Application.Tests.abppkg",
+      "folder": "test"
+    },
+    "ModularCrm.Catalog.Domain.Shared": {
+      "path": "src/ModularCrm.Catalog.Domain.Shared/ModularCrm.Catalog.Domain.Shared.abppkg",
+      "folder": "src"
+    },
+    "ModularCrm.Catalog.Installer": {
+       "path": "src/ModularCrm.Catalog.Installer/ModularCrm.Catalog.Installer.abppkg",
+       "folder": "src"
+    }
+  }
+}

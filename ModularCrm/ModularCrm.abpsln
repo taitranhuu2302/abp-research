@@ -1,0 +1,63 @@
+{
+  "id": "5a5e3a3c-8c9a-4b5e-9d03-4c95b335ad85",
+  "template": "app",
+  "versions": {
+    "AbpFramework": "9.2.0",
+    "AbpStudio": "1.0.1",
+    "TargetDotnetFramework": "net9.0"
+  },
+  "modules": {
+    "ModularCrm": {
+      "path": "ModularCrm.abpmdl"
+    },
+    "ModularCrm.Catalog": {
+      "path": "modules/modularcrm.catalog/ModularCrm.Catalog.abpmdl",
+      "folder": "modules"
+    }
+  },
+  "runProfiles": {
+    "Default": {
+      "path": "etc/abp-studio/run-profiles/Default.abprun.json"
+    }
+  },
+  "options": {
+    "httpRequests": {
+      "ignoredUrls": []
+    }
+  },
+  "creatingStudioConfiguration": {
+    "template": "app",
+    "createdAbpStudioVersion": "1.0.1",
+    "tiered": "false",
+    "runInstallLibs": "true",
+    "useLocalReferences": "false",
+    "multiTenancy": "true",
+    "includeTests": "true",
+    "kubernetesConfiguration": "false",
+    "uiFramework": "angular",
+    "mobileFramework": "none",
+    "distributedEventBus": "none",
+    "databaseProvider": "ef",
+    "runDbMigrator": "true",
+    "databaseManagementSystem": "postgresql",
+    "separateTenantSchema": "false",
+    "createInitialMigration": "true",
+    "theme": "leptonx-lite",
+    "themeStyle": "",
+    "themeMenuPlacement": "",
+    "progressiveWebApp": "true",
+    "runProgressiveWebAppSupport": "true",
+    "publicWebsite": "false",
+    "socialLogin": "false",
+    "selectedLanguages": [
+      "English"
+    ],
+    "defaultLanguage": "English",
+    "createCommand": "abp new ModularCrm -t app --ui-framework angular --database-provider ef --database-management-system postgresql --theme leptonx-lite --without-cms-kit --sample-crud-page --dont-run-bundling --no-social-logins -no-gdpr -no-openiddict-admin-ui -no-audit-logging -no-file-management -no-language-management -no-text-template-management"
+  },
+  "folders": {
+    "items": {
+      "modules": {}
+    }
+  }
+}
