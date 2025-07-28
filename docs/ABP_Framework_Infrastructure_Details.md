@@ -2,6 +2,67 @@
 
 Tài liệu này cung cấp một cái nhìn tổng quan chi tiết về các thành phần cơ sở hạ tầng khác nhau trong ABP Framework. Mỗi phần sẽ giải thích một tính năng cụ thể, cách cấu hình và sử dụng nó trong ứng dụng của bạn.
 
+## Mục lục
+
+#### 1. [Ghi nhật ký kiểm tra (Audit Logging)](#1-ghi-nhật-ký-kiểm-tra-audit-logging)
+
+#### 2. [Công việc nền (Background Jobs)](#2-công-việc-nền-background-jobs)
+
+#### 3. [Worker nền (Background Workers)](#3-worker-nền-background-workers)
+
+#### 4. [Lưu trữ BLOB (BLOB Storing)](#4-lưu-trữ-blob-blob-storing)
+
+#### 5. [Cancellation Token Provider](#5-cancellation-token-provider)
+
+#### 6. [Chống tấn công CSRF/XSRF (Anti-Forgery)](#6-chống-tấn-công-csrfxsrf-anti-forgery)
+
+#### 7. [Kiểm soát truy cập đồng thời (Concurrency Check)](#7-kiểm-soát-truy-cập-đồng-thời-concurrency-check)
+
+#### 8. [Người dùng hiện tại (Current User)](#8-người-dùng-hiện-tại-current-user)
+
+#### 9. [Lọc dữ liệu (Data Filtering)](#9-lọc-dữ-liệu-data-filtering)
+
+#### 10. [Cung cấp dữ liệu ban đầu (Data Seeding)](#10-cung-cấp-dữ-liệu-ban-đầu-data-seeding)
+
+#### 11. [Khóa phân tán (Distributed Locking)](#11-khóa-phân-tán-distributed-locking)
+
+#### 12. [Gửi Email (Emailing)](#12-gửi-email-emailing)
+
+#### 13. [Cache thực thể (Entity Cache)](#13-cache-thực-thể-entity-cache)
+
+#### 14. [Bus sự kiện (Event Bus)](#14-bus-sự-kiện-event-bus)
+
+
+#### 15. [Hệ thống Tính năng (Features)](#15-hệ-thống-tính-năng-features)
+
+
+#### 16. [Tính năng toàn cục (Global Features)](#16-tính-năng-toàn-cục-global-features)
+
+
+#### 17. [Tạo GUID (GUID Generation)](#17-tạo-guid-guid-generation)
+
+#### 18. [Xử lý ảnh (Image Manipulation)](#18-xử-lý-ảnh-image-manipulation)
+
+#### 19. [Xử lý JSON (JSON Serialization)](#19-xử-lý-json-json-serialization)
+
+#### 20. [Ánh xạ đối tượng (Object To Object Mapping)](#20-ánh-xạ-đối-tượng-object-to-object-mapping)
+
+#### 21. [Cài đặt (Settings)](#21-cài-đặt-settings)
+
+#### 22. [Kiểm tra trạng thái đơn giản (Simple State Checker)](#22-kiểm-tra-trạng-thái-đơn-giản-simple-state-checker)
+
+#### 23. [Gửi tin nhắn SMS (SMS Sending)](#23-gửi-tin-nhắn-sms-sms-sending)
+
+#### 24. [Mã hóa chuỗi (String Encryption)](#24-mã-hóa-chuỗi-string-encryption)
+
+#### 25. [Tạo mẫu văn bản (Text Templating)](#25-tạo-mẫu-văn-bản-text-templating)
+
+#### 26. [Thời gian và Múi giờ (Timing)](#26-thời-gian-và-múi-giờ-timing)
+
+#### 27. [Hệ thống tệp ảo (Virtual File System)](#27-hệ-thống-tệp-ảo-virtual-file-system)
+
+---
+
 ## 1. Ghi nhật ký kiểm tra (Audit Logging)
 
 Hệ thống ghi nhật ký kiểm tra (Audit Logging) của ABP Framework cung cấp một cơ chế mở rộng để tự động ghi lại các hoạt động quan trọng trong ứng dụng. Nó tạo ra một bản ghi theo trình tự thời gian về các sự kiện, hoạt động và thủ tục, rất hữu ích cho việc kiểm tra bảo mật và theo dõi hoạt động của người dùng.
