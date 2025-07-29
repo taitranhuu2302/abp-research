@@ -16,32 +16,35 @@
 - [4. Architecture
 ](#4-architecture
 )
-- [5. Multi-tenancy
-](#5-multi-tenancy
+- [5. Architecture
+](#5-architecture
 )
-- [6. Module Development Best Practices
-](#6-module-development-best-practices
+- [6. Multi-tenancy
+](#6-multi-tenancy
 )
-- [7. API Development
-](#7-api-development
+- [7. Module Development Best Practices
+](#7-module-development-best-practices
 )
-- [8. Troubleshooting và Debug Tips
-](#8-troubleshooting-và-debug-tips
+- [8. API Development
+](#8-api-development
 )
-- [9. So sánh với các Frameworks khác
-](#9-so-sánh-với-các-frameworks-khác
+- [9. Troubleshooting và Debug Tips
+](#9-troubleshooting-và-debug-tips
 )
-- [10. Ưu điểm của ABP Framework
-](#10-ưu-điểm-của-abp-framework
+- [10. So sánh với các Frameworks khác
+](#10-so-sánh-với-các-frameworks-khác
 )
-- [11. Nhược điểm và Hạn chế
-](#11-nhược-điểm-và-hạn-chế
+- [11. Ưu điểm của ABP Framework
+](#11-ưu-điểm-của-abp-framework
 )
-- [12. Khi nào nên sử dụng ABP Framework
-](#12-khi-nào-nên-sử-dụng-abp-framework
+- [12. Nhược điểm và Hạn chế
+](#12-nhược-điểm-và-hạn-chế
 )
-- [13. Kết luận
-](#13-kết-luận
+- [13. Khi nào nên sử dụng ABP Framework
+](#13-khi-nào-nên-sử-dụng-abp-framework
+)
+- [14. Kết luận
+](#14-kết-luận
 )
 
 # ABP Framework
@@ -1944,7 +1947,7 @@ public async Task ProcessForTenantAsync(Guid tenantId)
 
 ## 7. Module Development Best Practices
 
-### 8.1 Module Architecture
+### 7.1 Module Architecture
 
 ```csharp
 // TodoApp.Domain/TodoAppDomainModule.cs
@@ -1984,7 +1987,7 @@ public class TodoAppDomainModule : AbpModule
 }
 ```
 
-### 8.2 Domain Layer Best Practices
+### 7.2 Domain Layer Best Practices
 
 ```csharp
 // Aggregate Root with business rules
@@ -2022,7 +2025,7 @@ public class TodoList : AuditedAggregateRoot<Guid>
 }
 ```
 
-### 8.3 Application Layer Best Practices
+### 7.3 Application Layer Best Practices
 
 ```csharp
 // Application Service Interface
@@ -2066,7 +2069,7 @@ public class TodoAppService : ApplicationService, ITodoAppService
 }
 ```
 
-### 8.4 Data Access Best Practices
+### 7.4 Data Access Best Practices
 
 ```csharp
 // EF Core Configuration
@@ -2107,11 +2110,254 @@ protected override void OnModelCreating(ModelBuilder builder)
 
 ---
 
-## 8. Troubleshooting và Debug Tips
+## 8. API Development
 
-### 8.1 Common Issues và Solutions
+### 8.1 Auto API Controllers
 
-#### 8.1.1 Module Dependencies và Circular References
+ABP Framework tự động tạo API controllers từ Application Services, giúp giảm thiểu boilerplate code và đảm bảo consistency. Khi bạn tạo một application service, ABP có thể **tự động** cấu hình nó như một API controller để expose HTTP (REST) API endpoints.
+
+#### 8.1.1 Basic Configuration
+
+Cấu hình cơ bản rất đơn giản. Chỉ cần configure `AbpAspNetCoreMvcOptions` và sử dụng method `ConventionalControllers.Create`:
+
+```csharp
+[DependsOn(TodoAppApplicationModule)]
+public class TodoAppWebModule : AbpModule
+{
+    public override void PreConfigureServices(ServiceConfigurationContext context)
+    {
+        PreConfigure<AbpAspNetCoreMvcOptions>(options =>
+        {
+            options
+                .ConventionalControllers
+                .Create(typeof(TodoAppApplicationModule).Assembly);
+        });
+    }
+}
+```
+
+Ví dụ này cấu hình tất cả application services trong assembly chứa class `TodoAppApplicationModule`.
+
+#### 8.1.2 HTTP Method Conventions
+
+ABP sử dụng naming convention để xác định HTTP method cho service method:
+
+| Method Name Prefix | HTTP Method | Ví dụ |
+|-------------------|-------------|-------|
+| Get, GetList, GetAll | GET | `GetAsync()`, `GetListAsync()` |
+| Put, Update | PUT | `UpdateAsync()`, `PutAsync()` |
+| Delete, Remove | DELETE | `DeleteAsync()`, `RemoveAsync()` |
+| Create, Add, Insert, Post | POST | `CreateAsync()`, `AddAsync()` |
+| Patch | PATCH | `PatchAsync()` |
+| Khác | POST (default) | `ProcessAsync()` |
+
+Bạn có thể override HTTP method bằng cách sử dụng standard ASP.NET Core attributes như `[HttpPost]`, `[HttpGet]`, `[HttpPut]`, etc.
+
+#### 8.1.3 Route Conventions
+
+Route được tính toán dựa trên các conventions:
+
+- **Base Path**: Luôn bắt đầu với `/api`
+- **Route Path**: Mặc định là `/app`, có thể customize:
+
+```csharp
+Configure<AbpAspNetCoreMvcOptions>(options =>
+{
+    options.ConventionalControllers
+        .Create(typeof(TodoAppApplicationModule).Assembly, opts =>
+        {
+            opts.RootPath = "todo-app";
+        });
+});
+```
+
+- **Controller Name**: Normalized service name (loại bỏ 'AppService', 'ApplicationService', 'Service' postfixes và convert sang kebab-case)
+- **Action Name**: Normalized method name (loại bỏ 'Async' postfix và HTTP method prefix)
+
+#### 8.1.4 Route Examples
+
+| Service Method Name | HTTP Method | Route |
+|-------------------|-------------|-------|
+| `GetAsync(Guid id)` | GET | `/api/app/todo-item/{id}` |
+| `GetListAsync()` | GET | `/api/app/todo-item` |
+| `CreateAsync(CreateTodoItemDto input)` | POST | `/api/app/todo-item` |
+| `UpdateAsync(Guid id, UpdateTodoItemDto input)` | PUT | `/api/app/todo-item/{id}` |
+| `DeleteAsync(Guid id)` | DELETE | `/api/app/todo-item/{id}` |
+| `GetCompletedAsync(Guid id)` | GET | `/api/app/todo-item/{id}/completed` |
+| `AddCommentAsync(Guid id, AddCommentDto input)` | POST | `/api/app/todo-item/{id}/comment` |
+
+#### 8.1.5 Service Selection
+
+ABP tự động chọn các class để tạo conventional HTTP API controllers:
+
+**IRemoteService Interface:**
+Nếu một class implement `IRemoteService` interface thì nó sẽ tự động được chọn làm conventional API controller. Application services inherently implement interface này.
+
+**RemoteService Attribute:**
+Có thể sử dụng `RemoteService` attribute để mark một class là remote service hoặc disable cho một class cụ thể:
+
+```csharp
+[RemoteService(IsEnabled = false)] // hoặc đơn giản [RemoteService(false)]
+public class PersonAppService : ApplicationService
+{
+    // Service này sẽ không được expose như API controller
+}
+```
+
+**TypePredicate Option:**
+Bạn có thể filter classes để trở thành API controller bằng cách cung cấp `TypePredicate` option:
+
+```csharp
+services.Configure<AbpAspNetCoreMvcOptions>(options =>
+{
+    options.ConventionalControllers
+        .Create(typeof(TodoAppApplicationModule).Assembly, opts =>
+        {
+            opts.TypePredicate = type => 
+            {
+                // Chỉ expose các service có tên kết thúc bằng "AppService"
+                return type.Name.EndsWith("AppService");
+            };
+        });
+});
+```
+
+#### 8.1.6 Application Service với Auto API
+
+```csharp
+// TodoApp.Application/Services/TodoAppService.cs
+public class TodoAppService : ApplicationService, ITodoAppService
+{
+    private readonly IRepository<TodoItem, Guid> _todoItemRepository;
+
+    public TodoAppService(IRepository<TodoItem, Guid> todoItemRepository)
+    {
+        _todoItemRepository = todoItemRepository;
+    }
+
+    // GET /api/app/todo-item
+    public async Task<List<TodoItemDto>> GetListAsync()
+    {
+        var todoItems = await _todoItemRepository.GetListAsync();
+        return ObjectMapper.Map<List<TodoItem>, List<TodoItemDto>>(todoItems);
+    }
+
+    // GET /api/app/todo-item/{id}
+    public async Task<TodoItemDto> GetAsync(Guid id)
+    {
+        var todoItem = await _todoItemRepository.GetAsync(id);
+        return ObjectMapper.Map<TodoItem, TodoItemDto>(todoItem);
+    }
+
+    // POST /api/app/todo-item
+    public async Task<TodoItemDto> CreateAsync(CreateTodoItemDto input)
+    {
+        var todoItem = new TodoItem { Text = input.Text };
+        await _todoItemRepository.InsertAsync(todoItem);
+        return ObjectMapper.Map<TodoItem, TodoItemDto>(todoItem);
+    }
+
+    // PUT /api/app/todo-item/{id}
+    public async Task<TodoItemDto> UpdateAsync(Guid id, UpdateTodoItemDto input)
+    {
+        var todoItem = await _todoItemRepository.GetAsync(id);
+        todoItem.Text = input.Text;
+        await _todoItemRepository.UpdateAsync(todoItem);
+        return ObjectMapper.Map<TodoItem, TodoItemDto>(todoItem);
+    }
+
+    // DELETE /api/app/todo-item/{id}
+    public async Task DeleteAsync(Guid id)
+    {
+        await _todoItemRepository.DeleteAsync(id);
+    }
+}
+```
+
+#### 8.1.7 Custom API Routes
+
+Bạn có thể override route mặc định bằng cách sử dụng standard ASP.NET Core attributes:
+
+```csharp
+public class TodoAppService : ApplicationService, ITodoAppService
+{
+    [HttpGet("api/todos/completed")]
+    public async Task<List<TodoItemDto>> GetCompletedTodosAsync()
+    {
+        var todoItems = await _todoItemRepository.GetListAsync(x => x.IsCompleted);
+        return ObjectMapper.Map<List<TodoItem>, List<TodoItemDto>>(todoItems);
+    }
+
+    [HttpPost("api/todos/bulk")]
+    public async Task<List<TodoItemDto>> CreateBulkAsync(List<CreateTodoItemDto> inputs)
+    {
+        var todoItems = new List<TodoItem>();
+        
+        foreach (var input in inputs)
+        {
+            var todoItem = new TodoItem { Text = input.Text };
+            await _todoItemRepository.InsertAsync(todoItem);
+            todoItems.Add(todoItem);
+        }
+        
+        return ObjectMapper.Map<List<TodoItem>, List<TodoItemDto>>(todoItems);
+    }
+}
+```
+
+#### 8.1.8 API Explorer
+
+API Explorer là service cho phép investigate API structure bởi clients. Swagger sử dụng nó để tạo documentation và test UI.
+
+API Explorer được tự động enable cho conventional HTTP API controllers. Bạn có thể control nó bằng `RemoteService` attribute:
+
+```csharp
+[RemoteService(IsMetadataEnabled = false)]
+public class PersonAppService : ApplicationService
+{
+    // Service này sẽ không xuất hiện trong API explorer/Swagger
+    // Nhưng vẫn có thể sử dụng nếu biết chính xác API path
+}
+```
+
+#### 8.1.9 Replace or Remove Controllers
+
+**Replace Controllers:**
+Bạn có thể replace built-in controllers bằng cách sử dụng `ReplaceControllersAttribute`:
+
+```csharp
+[ReplaceControllers(typeof(AbpApplicationConfigurationController))]
+[Area("abp")]
+[RemoteService(Name = "abp")]
+public class ReplaceBuiltInController : AbpController
+{
+    [HttpGet("api/abp/application-configuration")]
+    public virtual Task<MyApplicationConfigurationDto> GetAsync(MyApplicationConfigurationRequestOptions options)
+    {
+        return Task.FromResult(new MyApplicationConfigurationDto());
+    }
+}
+```
+
+**Remove Controllers:**
+Configure `ControllersToRemove` của `AbpAspNetCoreMvcOptions` để remove controllers:
+
+```csharp
+services.Configure<AbpAspNetCoreMvcOptions>(options =>
+{
+    options.ControllersToRemove.Add(typeof(AbpLanguagesController));
+});
+```
+
+
+
+---
+
+## 9. Troubleshooting và Debug Tips
+
+### 9.1 Common Issues và Solutions
+
+#### 9.1.1 Module Dependencies và Circular References
 ```csharp
 // Problem: Circular dependency between modules
 [DependsOn(typeof(ModuleB))]
@@ -2130,7 +2376,7 @@ public class ModuleB : AbpModule { }
 public class SharedModule : AbpModule { }
 ```
 
-#### 8.1.2 Permission Issues
+#### 9.1.2 Permission Issues
 ```csharp
 // Problem: Permission not working
 [Authorize("MyApp.Books.Create")] // ❌ String literal
@@ -2149,7 +2395,7 @@ public async Task<bool> CheckPermissionAsync(string permissionName)
 }
 ```
 
-#### 8.1.3 AutoMapper Issues
+#### 9.1.3 AutoMapper Issues
 ```csharp
 // Problem: Mapping not working
 // Solution: Check AutoMapper configuration
@@ -2181,9 +2427,9 @@ public class MyAppService : ApplicationService
 }
 ```
 
-### 8.2 Debugging Techniques
+### 9.2 Debugging Techniques
 
-#### 8.2.1 Enable ABP Debug Logging
+#### 9.2.1 Enable ABP Debug Logging
 ```csharp
 // Program.cs hoặc appsettings.json
 builder.Host.UseSerilog((context, services, loggerConfiguration) =>
@@ -2209,7 +2455,7 @@ builder.Host.UseSerilog((context, services, loggerConfiguration) =>
 }
 ```
 
-#### 8.2.2 Custom Debug Middleware
+#### 9.2.2 Custom Debug Middleware
 ```csharp
 public override void OnApplicationInitialization(ApplicationInitializationContext context)
 {
@@ -2240,7 +2486,7 @@ public override void OnApplicationInitialization(ApplicationInitializationContex
 }
 ```
 
-#### 8.2.3 Unit of Work Debugging
+#### 9.2.3 Unit of Work Debugging
 ```csharp
 public class TodoAppService : ApplicationService
 {
@@ -2267,9 +2513,9 @@ public class TodoAppService : ApplicationService
 }
 ```
 
-### 8.3 Performance Profiling
+### 9.3 Performance Profiling
 
-#### 8.3.1 Database Query Profiling
+#### 9.3.1 Database Query Profiling
 ```csharp
 public class TodoAppService : ApplicationService
 {
@@ -2303,7 +2549,7 @@ public class TodoAppService : ApplicationService
 }
 ```
 
-#### 8.3.2 Memory Usage Monitoring
+#### 9.3.2 Memory Usage Monitoring
 ```csharp
 public class MemoryMonitoringService : ITransientDependency
 {
@@ -2344,9 +2590,9 @@ public async Task CreateBulkTodosAsync(List<CreateTodoItemDto> inputs)
 }
 ```
 
-### 8.4 Common Anti-patterns và Solutions
+### 9.4 Common Anti-patterns và Solutions
 
-#### 8.4.1 N+1 Query Problem
+#### 9.4.1 N+1 Query Problem
 ```csharp
 // ❌ BAD: N+1 queries
 public async Task<List<OrderDto>> GetOrdersWithItemsBadAsync()
@@ -2372,7 +2618,7 @@ public async Task<List<OrderDto>> GetOrdersWithItemsGoodAsync()
 }
 ```
 
-#### 8.4.2 Improper Exception Handling
+#### 9.4.2 Improper Exception Handling
 ```csharp
 // ❌ BAD: Swallow exceptions
 public async Task CreateTodoItemBadAsync(CreateTodoItemDto input)
@@ -2406,9 +2652,9 @@ public async Task CreateTodoItemGoodAsync(CreateTodoItemDto input)
 
 ---
 
-## 9. So sánh với các Frameworks khác
+## 10. So sánh với các Frameworks khác
 
-### 9.1 ABP vs Clean Architecture Template
+### 10.1 ABP vs Clean Architecture Template
 
 | **Aspect** | **ABP Framework** | **Clean Architecture** |
 |------------|-------------------|------------------------|
@@ -2418,7 +2664,7 @@ public async Task CreateTodoItemGoodAsync(CreateTodoItemDto input)
 | **Enterprise Features** | Built-in (auth, multi-tenancy) | Manual implementation needed |
 | **Community** | Large ABP community | General .NET community |
 
-### 9.2 ABP vs ASP.NET Core Minimal APIs
+### 10.2 ABP vs ASP.NET Core Minimal APIs
 
 | **Aspect** | **ABP Framework** | **Minimal APIs** |
 |------------|-------------------|------------------|
@@ -2432,61 +2678,61 @@ public async Task CreateTodoItemGoodAsync(CreateTodoItemDto input)
 
 ---
 
-## 10. Ưu điểm của ABP Framework
+## 11. Ưu điểm của ABP Framework
 
-### 10.1 Rapid Development
+### 11.1 Rapid Development
 - **Scaffolding Tools**: ABP CLI và ABP Studio để generate code nhanh chóng
 - **Pre-built Modules**: Identity, Tenant Management, Permission Management có sẵn
 - **Auto API Generation**: Tự động tạo API endpoints từ Application Services
 - **Built-in UI**: Admin panels và user management interfaces
 
-### 10.2 Enterprise-ready Features
+### 11.2 Enterprise-ready Features
 - **Multi-tenancy**: Hỗ trợ SaaS applications out-of-the-box
 - **Microservices**: Distributed architecture support
 - **Security**: OAuth 2.0, OpenIdConnect, JWT tokens
 - **Performance**: Caching, async/await patterns, optimized queries
 - **Scalability**: Horizontal scaling với distributed systems
 
-### 10.3 Developer Experience
+### 11.3 Developer Experience
 - **IntelliSense Support**: Strongly-typed configuration và options
 - **Testing Support**: Integration testing frameworks built-in
 - **Documentation**: Comprehensive docs và samples
 - **Community**: Active community và commercial support
 
-### 10.4 Architecture Benefits
+### 11.4 Architecture Benefits
 - **Separation of Concerns**: Clean layered architecture
 - **SOLID Principles**: Code tuân thủ SOLID principles
 - **Testability**: Highly testable với dependency injection
 - **Maintainability**: Modular structure dễ maintain và extend
 
-## 11. Nhược điểm và Hạn chế
+## 12. Nhược điểm và Hạn chế
 
-### 11.1 Learning Curve
+### 12.1 Learning Curve
 - **Complexity**: Phức tạp cho beginners, nhiều concepts cần học
 - **DDD Knowledge**: Cần hiểu Domain Driven Design patterns
 - **Convention Heavy**: Nhiều conventions cần nắm vững
 - **Documentation Overwhelm**: Quá nhiều documentation có thể gây choáng
 
-### 11.2 Performance Considerations
+### 12.2 Performance Considerations
 - **Overhead**: Framework overhead có thể impact performance
 - **Memory Usage**: Nhiều built-in features tăng memory footprint
 - **Startup Time**: Module initialization có thể chậm với large applications
 - **Database Calls**: ORM abstractions có thể tạo ra unnecessary queries
 
-### 11.3 Vendor Lock-in
+### 12.3 Vendor Lock-in
 - **ABP Specific**: Code heavily coupled với ABP conventions
 - **Migration Difficulty**: Khó migrate sang frameworks khác
 - **Commercial Modules**: Một số modules quan trọng cần license thương mại
 - **Versioning**: Breaking changes between major versions
 
-### 11.4 Overkill cho Simple Projects
+### 12.4 Overkill cho Simple Projects
 - **Small Projects**: Quá nặng cho simple CRUD applications
 - **Prototyping**: Không phù hợp cho rapid prototyping
 - **Learning Projects**: Có thể che giấu underlying .NET concepts
 
-## 12. Khi nào nên sử dụng ABP Framework
+## 13. Khi nào nên sử dụng ABP Framework
 
-### 12.1 Suitable Use Cases
+### 13.1 Suitable Use Cases
 - ✅ **Enterprise Applications**: Large-scale business applications
 - ✅ **SaaS Platforms**: Multi-tenant applications
 - ✅ **Microservices**: Distributed system architectures
@@ -2494,7 +2740,7 @@ public async Task CreateTodoItemGoodAsync(CreateTodoItemDto input)
 - ✅ **Team Development**: Teams với experience DDD và .NET
 ✅ **Complex Business Logic**: Applications với business rules phức tạp
 
-### 12.2 Not Suitable For
+### 13.2 Not Suitable For
 - ❌ **Simple CRUD Apps**: Basic data entry applications
 - ❌ **Prototypes**: Quick proof-of-concepts
 - ❌ **Learning .NET**: First .NET projects cho beginners
@@ -2508,11 +2754,11 @@ ABP Framework cung cấp một architecture mạnh mẽ và scalable cho việc 
 
 ---
 
-## 13. Kết luận
+## 14. Kết luận
 
 ABP Framework cung cấp một architecture mạnh mẽ và scalable cho việc phát triển ứng dụng enterprise.
 
-### 13.1 Final Recommendations
+### 14.1 Final Recommendations
 
 **Cho Team Lead/Architect:**
 - Invest time trong training và team preparation
