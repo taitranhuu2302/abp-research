@@ -1,0 +1,478 @@
+/* Slide Base Styles */
+.slide {
+    display: none;
+    min-height: 70vh;
+    padding: var(--spacing-8);
+    background: var(--white);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-xl);
+    position: relative;
+    overflow: hidden;
+}
+
+.slide.active {
+    display: block;
+    animation: slideIn var(--transition-slow) ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Slide Types */
+.slide-title {
+    text-align: center;
+    padding: var(--spacing-12) var(--spacing-8);
+}
+
+.slide-title h1 {
+    font-size: var(--font-size-5xl);
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: var(--spacing-6);
+}
+
+.slide-title .subtitle {
+    font-size: var(--font-size-xl);
+    color: var(--gray-600);
+    margin-bottom: var(--spacing-8);
+}
+
+.slide-title .author {
+    font-size: var(--font-size-lg);
+    color: var(--gray-500);
+    font-weight: 500;
+}
+
+/* Content Slides */
+.slide-content {
+    padding: var(--spacing-8);
+}
+
+.slide-content h2 {
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-light);
+    padding-bottom: var(--spacing-2);
+    margin-bottom: var(--spacing-6);
+}
+
+.slide-content h3 {
+    color: var(--gray-800);
+    margin-top: var(--spacing-8);
+    margin-bottom: var(--spacing-4);
+}
+
+/* Two Column Layout */
+.slide-two-column {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-8);
+    align-items: start;
+    padding: var(--spacing-8);
+}
+
+.slide-two-column .column {
+    padding: var(--spacing-4);
+}
+
+.slide-two-column .column-left {
+    border-right: 1px solid var(--gray-200);
+}
+
+/* Three Column Layout */
+.slide-three-column {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-6);
+    padding: var(--spacing-8);
+}
+
+.slide-three-column .column {
+    text-align: center;
+    padding: var(--spacing-4);
+}
+
+/* Feature Grid */
+.slide-features {
+    padding: var(--spacing-8);
+}
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-6);
+    margin-top: var(--spacing-6);
+}
+
+.feature-card {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-6);
+    transition: all var(--transition-normal);
+}
+
+.feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-light);
+}
+
+.feature-card .icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    border-radius: var(--radius-xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--spacing-4);
+}
+
+.feature-card .icon i {
+    font-size: var(--font-size-2xl);
+    color: var(--white);
+}
+
+.feature-card h4 {
+    color: var(--gray-900);
+    margin-bottom: var(--spacing-3);
+}
+
+.feature-card p {
+    color: var(--gray-600);
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+}
+
+/* Code Slides */
+.slide-code {
+    padding: var(--spacing-6);
+}
+
+.code-container {
+    background: var(--gray-900);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin: var(--spacing-4) 0;
+}
+
+.code-header {
+    background: var(--gray-800);
+    padding: var(--spacing-3) var(--spacing-4);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--gray-700);
+}
+
+.code-header .language {
+    color: var(--gray-300);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+}
+
+.code-header .copy-btn {
+    background: none;
+    border: none;
+    color: var(--gray-400);
+    cursor: pointer;
+    padding: var(--spacing-1);
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-fast);
+}
+
+.code-header .copy-btn:hover {
+    background: var(--gray-700);
+    color: var(--white);
+}
+
+.code-content {
+    padding: var(--spacing-4);
+    font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+    font-size: var(--font-size-sm);
+    line-height: 1.6;
+    color: var(--gray-100);
+    overflow-x: auto;
+}
+
+.code-content pre {
+    margin: 0;
+    white-space: pre-wrap;
+}
+
+/* Comparison Slides */
+.slide-comparison {
+    padding: var(--spacing-8);
+}
+
+.comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: var(--spacing-6) 0;
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+}
+
+.comparison-table th,
+.comparison-table td {
+    padding: var(--spacing-4);
+    text-align: left;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.comparison-table th {
+    background: var(--gray-50);
+    font-weight: 600;
+    color: var(--gray-900);
+}
+
+.comparison-table tr:hover {
+    background: var(--gray-50);
+}
+
+.comparison-table .highlight {
+    background: var(--primary-color);
+    color: var(--white);
+    font-weight: 600;
+}
+
+/* List Slides */
+.slide-list {
+    padding: var(--spacing-8);
+}
+
+.list-container {
+    margin: var(--spacing-6) 0;
+}
+
+.list-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: var(--spacing-4);
+    padding: var(--spacing-3);
+    background: var(--gray-50);
+    border-radius: var(--radius-lg);
+    border-left: 4px solid var(--primary-color);
+}
+
+.list-item .icon {
+    margin-right: var(--spacing-3);
+    color: var(--primary-color);
+    font-size: var(--font-size-lg);
+    margin-top: 2px;
+}
+
+.list-item .content h4 {
+    margin-bottom: var(--spacing-2);
+    color: var(--gray-900);
+}
+
+.list-item .content p {
+    margin-bottom: 0;
+    color: var(--gray-600);
+    font-size: var(--font-size-sm);
+}
+
+/* Pros and Cons */
+.pros-cons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-8);
+    margin: var(--spacing-6) 0;
+}
+
+.pros, .cons {
+    padding: var(--spacing-6);
+    border-radius: var(--radius-xl);
+}
+
+.pros {
+    background: linear-gradient(135deg, var(--secondary-color), #34d399);
+    color: var(--white);
+}
+
+.cons {
+    background: linear-gradient(135deg, var(--danger-color), #f87171);
+    color: var(--white);
+}
+
+.pros h3, .cons h3 {
+    color: var(--white);
+    margin-bottom: var(--spacing-4);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.pros ul, .cons ul {
+    list-style: none;
+    padding: 0;
+}
+
+.pros li, .cons li {
+    margin-bottom: var(--spacing-2);
+    padding-left: var(--spacing-4);
+    position: relative;
+}
+
+.pros li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: var(--white);
+    font-weight: bold;
+}
+
+.cons li::before {
+    content: "✗";
+    position: absolute;
+    left: 0;
+    color: var(--white);
+    font-weight: bold;
+}
+
+/* Architecture Diagram */
+.slide-architecture {
+    padding: var(--spacing-8);
+    text-align: center;
+}
+
+.architecture-diagram {
+    margin: var(--spacing-6) 0;
+    padding: var(--spacing-6);
+    background: var(--gray-50);
+    border-radius: var(--radius-xl);
+    border: 2px dashed var(--gray-300);
+}
+
+.layer {
+    margin: var(--spacing-4) 0;
+    padding: var(--spacing-4);
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--gray-200);
+    position: relative;
+}
+
+.layer::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -20px;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid var(--gray-200);
+}
+
+.layer:last-child::before {
+    display: none;
+}
+
+.layer h4 {
+    margin-bottom: var(--spacing-2);
+    color: var(--primary-color);
+}
+
+.layer p {
+    margin-bottom: 0;
+    color: var(--gray-600);
+    font-size: var(--font-size-sm);
+}
+
+/* Responsive Design for Slides */
+@media (max-width: 768px) {
+    .slide {
+        padding: var(--spacing-4);
+        min-height: 60vh;
+    }
+    
+    .slide-title h1 {
+        font-size: var(--font-size-3xl);
+    }
+    
+    .slide-two-column,
+    .slide-three-column {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-4);
+    }
+    
+    .slide-two-column .column-left {
+        border-right: none;
+        border-bottom: 1px solid var(--gray-200);
+        padding-bottom: var(--spacing-4);
+    }
+    
+    .feature-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .pros-cons {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-4);
+    }
+    
+    .comparison-table {
+        font-size: var(--font-size-sm);
+    }
+    
+    .comparison-table th,
+    .comparison-table td {
+        padding: var(--spacing-2);
+    }
+}
+
+@media (max-width: 480px) {
+    .slide {
+        padding: var(--spacing-3);
+    }
+    
+    .slide-title {
+        padding: var(--spacing-6) var(--spacing-4);
+    }
+    
+    .slide-title h1 {
+        font-size: var(--font-size-2xl);
+    }
+    
+    .feature-card {
+        padding: var(--spacing-4);
+    }
+    
+    .code-content {
+        font-size: var(--font-size-xs);
+        padding: var(--spacing-3);
+    }
+}
+
+/* Print Styles for Slides */
+@media print {
+    .slide {
+        box-shadow: none;
+        border: 1px solid var(--gray-300);
+        margin-bottom: var(--spacing-8);
+        page-break-inside: avoid;
+    }
+    
+    .slide-title {
+        page-break-after: avoid;
+    }
+    
+    .feature-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+} 
