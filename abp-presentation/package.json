@@ -1,0 +1,36 @@
+{
+  "name": "abp-framework-presentation",
+  "version": "1.0.0",
+  "description": "A comprehensive presentation about ABP Framework covering 14 Core Modules and Infrastructure Components",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx serve . -p 3000",
+    "build": "echo 'No build step required for static files'",
+    "preview": "npx serve . -p 4173"
+  },
+  "keywords": [
+    "abp-framework",
+    "presentation",
+    "slides",
+    "web",
+    "javascript",
+    "html",
+    "css"
+  ],
+  "author": "ABP Framework Presentation Generator",
+  "license": "MIT",
+  "devDependencies": {},
+  "dependencies": {},
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/abp-framework-presentation.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/abp-framework-presentation/issues"
+  },
+  "homepage": "https://github.com/your-username/abp-framework-presentation#readme"
+}
