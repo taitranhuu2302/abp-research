@@ -1,7 +1,466 @@
 // Extended ABP Framework Presentation Data
+
+// --- Core Concepts Slides ---
+const coreConceptsSlides = [
+  // Slide 4: Understanding Module Structure
+  {
+    id: 'slide-4-module-structure',
+    title: 'Understanding Module Structure',
+    subtitle: 'Cấu trúc và lifecycle của ABP Module',
+    content: `
+      <h3>2.5 Understanding Module Structure</h3>
+      <p>Mỗi project trong ABP là một Module. Module structure bao gồm các lifecycle methods được gọi theo thứ tự cụ thể trong quá trình khởi tạo ứng dụng.</p>
+
+      <h4>Typical ABP Module Structure</h4>
+      <div class="code-block">
+        <pre><code class="language-csharp">// Typical ABP Module structure
+[DependsOn(
+    typeof(ParentModule1),      // Dependencies on other modules
+    typeof(ParentModule2)
+)]
+public class MyProjectDomainModule : AbpModule
+{
+    // 1. PreConfigureServices - Chạy trước tất cả modules
+    public override void PreConfigureServices(ServiceConfigurationContext context)
+    {
+        // Configure options that other modules might need
+        // Setup Object Extensions
+        // Configure conventions
+    }
+
+    // 2. ConfigureServices - Main configuration
+    public override void ConfigureServices(ServiceConfigurationContext context)
+    {
+        // Register services
+        // Configure options
+        // Setup AutoMapper profiles
+    }
+
+    // 3. PostConfigureServices - Chạy sau tất cả modules configure
+    public override void PostConfigureServices(ServiceConfigurationContext context)
+    {
+        // Override configurations from other modules
+        // Final configurations
+    }
+
+    // 4. OnApplicationInitialization - Application startup
+    public override void OnApplicationInitialization(ApplicationInitializationContext context)
+    {
+        // Configure middleware pipeline (chỉ trong Host modules)
+        // Initialize background services
+    }
+
+    // 5. OnApplicationShutdown - Application cleanup
+    public override void OnApplicationShutdown(ApplicationShutdownContext context)
+    {
+        // Cleanup resources
+        // Dispose services
+    }
+}</code></pre>
+      </div>
+
+      <h4>Lifecycle Methods Explanation</h4>
+      
+      <h5>1. PreConfigureServices</h5>
+      <ul>
+        <li><strong>Thời điểm:</strong> Chạy trước tất cả modules</li>
+        <li><strong>Mục đích:</strong> Cấu hình options mà các module khác có thể cần</li>
+        <li><strong>Ví dụ:</strong> Setup Object Extensions, Configure conventions</li>
+      </ul>
+
+      <h5>2. ConfigureServices</h5>
+      <ul>
+        <li><strong>Thời điểm:</strong> Cấu hình chính của module</li>
+        <li><strong>Mục đích:</strong> Đăng ký services, cấu hình options</li>
+        <li><strong>Ví dụ:</strong> Register services, Setup AutoMapper profiles</li>
+      </ul>
+
+      <h5>3. PostConfigureServices</h5>
+      <ul>
+        <li><strong>Thời điểm:</strong> Chạy sau tất cả modules đã configure</li>
+        <li><strong>Mục đích:</strong> Override configurations từ module khác</li>
+        <li><strong>Ví dụ:</strong> Final configurations, Override default settings</li>
+      </ul>
+
+      <h5>4. OnApplicationInitialization</h5>
+      <ul>
+        <li><strong>Thời điểm:</strong> Khi ứng dụng khởi động</li>
+        <li><strong>Mục đích:</strong> Cấu hình middleware pipeline (chỉ trong Host modules)</li>
+        <li><strong>Ví dụ:</strong> Initialize background services, Setup middleware</li>
+      </ul>
+
+      <h5>5. OnApplicationShutdown</h5>
+      <ul>
+        <li><strong>Thời điểm:</strong> Khi ứng dụng tắt</li>
+        <li><strong>Mục đích:</strong> Cleanup resources, dispose services</li>
+        <li><strong>Ví dụ:</strong> Dispose connections, Cleanup temporary files</li>
+      </ul>
+
+      <h4>Best Practices</h4>
+      <ul>
+        <li><strong>PreConfigureServices:</strong> Chỉ cấu hình những gì cần thiết cho module khác</li>
+        <li><strong>ConfigureServices:</strong> Đây là nơi chính để đăng ký services</li>
+        <li><strong>PostConfigureServices:</strong> Sử dụng để override khi cần thiết</li>
+        <li><strong>OnApplicationInitialization:</strong> Chỉ sử dụng trong Host modules</li>
+        <li><strong>OnApplicationShutdown:</strong> Đảm bảo cleanup resources đúng cách</li>
+      </ul>
+
+      <h4>Module Dependencies</h4>
+      <p>Module dependencies được khai báo qua <code>[DependsOn]</code> attribute, đảm bảo thứ tự khởi tạo đúng. ABP sẽ tự động xử lý dependency graph và topological sorting.</p>
+    `
+  },
+
+  // Slide 5: Module System và Patterns
+  {
+    id: 'slide-5-module-system',
+    title: 'Module System và Patterns',
+    subtitle: '[DependsOn] Attribute và *DefinitionProvider Pattern',
+    content: `
+      <h3>4.2 Module [DependsOn] Attribute</h3>
+      <p><code>[DependsOn]</code> là một attribute dùng để khai báo sự phụ thuộc giữa các module trong ABP.</p>
+
+      <h4>Nó hoạt động như thế nào?</h4>
+      
+      <h5>1. Xây dựng đồ thị phụ thuộc (Dependency Graph)</h5>
+      <p>Khi ứng dụng khởi động, ABP quét tất cả các module và dùng <code>[DependsOn]</code> để xây dựng một đồ thị phụ thuộc.</p>
+
+      <h5>2. Đảm bảo thứ tự thực thi Lifecycle</h5>
+      <p>Việc sắp xếp này đảm bảo rằng các phương thức trong vòng đời của module (<code>PreConfigureServices</code>, <code>ConfigureServices</code>, <code>OnApplicationInitialization</code>, ...) được gọi theo đúng thứ tự. Dịch vụ của một module cha sẽ luôn có sẵn cho module con.</p>
+
+      <div class="code-block">
+        <pre><code class="language-csharp">// Web module phụ thuộc vào Application và EntityFrameworkCore modules
+[DependsOn(
+    typeof(MyProjectApplicationModule),
+    typeof(MyProjectEntityFrameworkCoreModule)
+)]
+public class MyProjectWebModule : AbpModule
+{
+    public override void ConfigureServices(ServiceConfigurationContext context)
+    {
+        // Tại đây, bạn có thể yên tâm rằng các dịch vụ từ
+        // MyProjectApplicationModule đã được đăng ký.
+        var appService = context.Services.GetRequiredService<IMyAppService>();
+    }
+}</code></pre>
+      </div>
+
+      <h3>4.3 *DefinitionProvider Pattern</h3>
+      <p>Đây là một pattern của ABP để cho phép các module định nghĩa và cung cấp các loại "định nghĩa" một cách tập trung và có thể mở rộng.</p>
+
+      <h4>Mục đích:</h4>
+      <ul>
+        <li><strong>Modular Definition:</strong> Mỗi module có thể tự định nghĩa các thành phần của riêng mình (permissions, settings, features...) mà không ảnh hưởng đến module khác.</li>
+        <li><strong>Khám phá tự động (Auto-Discovery):</strong> Framework tự động tìm tất cả các class provider này trong các assembly và thực thi chúng.</li>
+        <li><strong>Tập trung hóa:</strong> Tất cả các định nghĩa của một loại được quản lý tại một nơi trong module đó.</li>
+      </ul>
+
+      <h4>Các DefinitionProvider phổ biến:</h4>
+      <ul>
+        <li><strong>PermissionDefinitionProvider:</strong> Định nghĩa các quyền (permissions) cho hệ thống phân quyền.</li>
+        <li><strong>SettingDefinitionProvider:</strong> Định nghĩa các thiết lập (settings) của ứng dụng có thể cấu hình.</li>
+        <li><strong>FeatureDefinitionProvider:</strong> Định nghĩa các tính năng (features) cho hệ thống quản lý tính năng (hữu ích cho multi-tenancy).</li>
+        <li><strong>LocalizationResourceContributor:</strong> Mặc dù không có hậu tố Provider, nó tuân theo cùng một pattern để đóng góp các file localization.</li>
+        <li><strong>NavigationDefinitionProvider:</strong> Định nghĩa các menu điều hướng cho UI.</li>
+      </ul>
+
+      <h4>Ví dụ - SettingDefinitionProvider:</h4>
+      <div class="code-block">
+        <pre><code class="language-csharp">// Trong .Domain layer
+public class MyProjectSettingDefinitionProvider : SettingDefinitionProvider
+{
+    public override void Define(ISettingDefinitionContext context)
+    {
+        // Định nghĩa một setting mới
+        context.Add(
+            new SettingDefinition(
+                "Smtp.Host", // Tên setting
+                "127.0.0.1", // Giá trị mặc định
+                L("DisplayName:Smtp.Host"), // Tên hiển thị (đã được localize)
+                L("Description:Smtp.Host"), // Mô tả
+                isVisibleToClients: false, // Client có được thấy setting này không?
+                isEncrypted: false // Có mã hóa giá trị khi lưu trong DB không?
+            )
+        );
+    }
+}</code></pre>
+      </div>
+
+      <h3>Lợi ích của Module System</h3>
+      <ul>
+        <li><strong>Tính mô-đun:</strong> Mỗi module có thể phát triển độc lập</li>
+        <li><strong>Quản lý phụ thuộc:</strong> Tự động xử lý thứ tự khởi tạo</li>
+        <li><strong>Mở rộng dễ dàng:</strong> Thêm module mới không ảnh hưởng module hiện có</li>
+        <li><strong>Pattern nhất quán:</strong> Các DefinitionProvider cung cấp cách tiếp cận thống nhất</li>
+      </ul>
+    `
+  },
+
+  // Slide 6: Auto API Controllers - Cơ bản
+  {
+    id: 'slide-6-auto-api-basic',
+    title: 'Auto API Controllers - Cơ bản',
+    subtitle: 'Tự động tạo API controllers từ Application Services',
+    content: `
+      <h3>8.1 Auto API Controllers</h3>
+      <p>ABP Framework tự động tạo API controllers từ Application Services, giúp giảm thiểu boilerplate code và đảm bảo consistency. Khi bạn tạo một application service, ABP có thể tự động cấu hình nó như một API controller để expose HTTP (REST) API endpoints.</p>
+
+      <h4>8.1.1 Basic Configuration</h4>
+      <p>Cấu hình cơ bản rất đơn giản. Chỉ cần configure <code>AbpAspNetCoreMvcOptions</code> và sử dụng method <code>ConventionalControllers.Create</code>:</p>
+
+      <div class="code-block">
+        <pre><code class="language-csharp">[DependsOn(TodoAppApplicationModule)]
+public class TodoAppWebModule : AbpModule
+{
+    public override void PreConfigureServices(ServiceConfigurationContext context)
+    {
+        PreConfigure<AbpAspNetCoreMvcOptions>(options =>
+        {
+            options
+                .ConventionalControllers
+                .Create(typeof(TodoAppApplicationModule).Assembly);
+        });
+    }
+}</code></pre>
+      </div>
+
+      <h4>8.1.2 HTTP Method Conventions</h4>
+      <p>ABP sử dụng naming convention để xác định HTTP method cho service method:</p>
+
+      <table>
+        <thead>
+          <tr><th>Method Name Prefix</th><th>HTTP Method</th><th>Ví dụ</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Get, GetList, GetAll</td><td>GET</td><td>GetAsync(), GetListAsync()</td></tr>
+          <tr><td>Put, Update</td><td>PUT</td><td>UpdateAsync(), PutAsync()</td></tr>
+          <tr><td>Delete, Remove</td><td>DELETE</td><td>DeleteAsync(), RemoveAsync()</td></tr>
+          <tr><td>Create, Add, Insert, Post</td><td>POST</td><td>CreateAsync(), AddAsync()</td></tr>
+          <tr><td>Patch</td><td>PATCH</td><td>PatchAsync()</td></tr>
+          <tr><td>Khác</td><td>POST (default)</td><td>ProcessAsync()</td></tr>
+        </tbody>
+      </table>
+
+      <h4>8.1.3 Route Conventions</h4>
+      <p>Route được tính toán dựa trên các conventions:</p>
+      <ul>
+        <li><strong>Base Path:</strong> Luôn bắt đầu với <code>/api</code></li>
+        <li><strong>Route Path:</strong> Mặc định là <code>/app</code>, có thể customize:</li>
+      </ul>
+
+      <div class="code-block">
+        <pre><code class="language-csharp">Configure<AbpAspNetCoreMvcOptions>(options =>
+{
+    options.ConventionalControllers
+        .Create(typeof(TodoAppApplicationModule).Assembly, opts =>
+        {
+            opts.RootPath = "todo-app";
+        });
+});</code></pre>
+      </div>
+
+      <ul>
+        <li><strong>Controller Name:</strong> Normalized service name (loại bỏ 'AppService', 'ApplicationService', 'Service' postfixes và convert sang kebab-case)</li>
+        <li><strong>Action Name:</strong> Normalized method name (loại bỏ 'Async' postfix và HTTP method prefix)</li>
+      </ul>
+
+      <h4>8.1.4 Route Examples</h4>
+      <table>
+        <thead>
+          <tr><th>Service Method Name</th><th>HTTP Method</th><th>Route</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>GetAsync(Guid id)</td><td>GET</td><td>/api/app/todo-item/{id}</td></tr>
+          <tr><td>GetListAsync()</td><td>GET</td><td>/api/app/todo-item</td></tr>
+          <tr><td>CreateAsync(CreateTodoItemDto input)</td><td>POST</td><td>/api/app/todo-item</td></tr>
+          <tr><td>UpdateAsync(Guid id, UpdateTodoItemDto input)</td><td>PUT</td><td>/api/app/todo-item/{id}</td></tr>
+          <tr><td>DeleteAsync(Guid id)</td><td>DELETE</td><td>/api/app/todo-item/{id}</td></tr>
+          <tr><td>GetCompletedAsync(Guid id)</td><td>GET</td><td>/api/app/todo-item/{id}/completed</td></tr>
+          <tr><td>AddCommentAsync(Guid id, AddCommentDto input)</td><td>POST</td><td>/api/app/todo-item/{id}/comment</td></tr>
+        </tbody>
+      </table>
+
+      <h4>8.1.5 Application Service với Auto API</h4>
+      <div class="code-block">
+        <pre><code class="language-csharp">// TodoApp.Application/Services/TodoAppService.cs
+public class TodoAppService : ApplicationService, ITodoAppService
+{
+    private readonly IRepository<TodoItem, Guid> _todoItemRepository;
+
+    public TodoAppService(IRepository<TodoItem, Guid> todoItemRepository)
+    {
+        _todoItemRepository = todoItemRepository;
+    }
+
+    // GET /api/app/todo-item
+    public async Task<List<TodoItemDto>> GetListAsync()
+    {
+        var todoItems = await _todoItemRepository.GetListAsync();
+        return ObjectMapper.Map<List<TodoItem>, List<TodoItemDto>>(todoItems);
+    }
+
+    // GET /api/app/todo-item/{id}
+    public async Task<TodoItemDto> GetAsync(Guid id)
+    {
+        var todoItem = await _todoItemRepository.GetAsync(id);
+        return ObjectMapper.Map<TodoItem, TodoItemDto>(todoItem);
+    }
+
+    // POST /api/app/todo-item
+    public async Task<TodoItemDto> CreateAsync(CreateTodoItemDto input)
+    {
+        var todoItem = new TodoItem { Text = input.Text };
+        await _todoItemRepository.InsertAsync(todoItem);
+        return ObjectMapper.Map<TodoItem, TodoItemDto>(todoItem);
+    }
+
+    // PUT /api/app/todo-item/{id}
+    public async Task<TodoItemDto> UpdateAsync(Guid id, UpdateTodoItemDto input)
+    {
+        var todoItem = await _todoItemRepository.GetAsync(id);
+        todoItem.Text = input.Text;
+        await _todoItemRepository.UpdateAsync(todoItem);
+        return ObjectMapper.Map<TodoItem, TodoItemDto>(todoItem);
+    }
+
+    // DELETE /api/app/todo-item/{id}
+    public async Task DeleteAsync(Guid id)
+    {
+        await _todoItemRepository.DeleteAsync(id);
+    }
+}</code></pre>
+      </div>
+    `
+  },
+
+  // Slide 7: Auto API Controllers - Nâng cao
+  {
+    id: 'slide-7-auto-api-advanced',
+    title: 'Auto API Controllers - Nâng cao',
+    subtitle: 'Service Selection, Custom Routes và Advanced Features',
+    content: `
+      <h4>8.1.6 Service Selection</h4>
+      <p>ABP tự động chọn các class để tạo conventional HTTP API controllers:</p>
+
+      <h5>IRemoteService Interface</h5>
+      <p>Nếu một class implement <code>IRemoteService</code> interface thì nó sẽ tự động được chọn làm conventional API controller. Application services inherently implement interface này.</p>
+
+      <h5>RemoteService Attribute</h5>
+      <p>Có thể sử dụng <code>RemoteService</code> attribute để mark một class là remote service hoặc disable cho một class cụ thể:</p>
+
+      <div class="code-block">
+        <pre><code class="language-csharp">[RemoteService(IsEnabled = false)] // hoặc đơn giản [RemoteService(false)]
+public class PersonAppService : ApplicationService
+{
+    // Service này sẽ không được expose như API controller
+}</code></pre>
+      </div>
+
+      <h5>TypePredicate Option</h5>
+      <p>Bạn có thể filter classes để trở thành API controller bằng cách cung cấp <code>TypePredicate</code> option:</p>
+
+      <div class="code-block">
+        <pre><code class="language-csharp">services.Configure<AbpAspNetCoreMvcOptions>(options =>
+{
+    options.ConventionalControllers
+        .Create(typeof(TodoAppApplicationModule).Assembly, opts =>
+        {
+            opts.TypePredicate = type => 
+            {
+                // Chỉ expose các service có tên kết thúc bằng "AppService"
+                return type.Name.EndsWith("AppService");
+            };
+        });
+});</code></pre>
+      </div>
+
+      <h4>8.1.7 Custom API Routes</h4>
+      <p>Bạn có thể override route mặc định bằng cách sử dụng standard ASP.NET Core attributes:</p>
+
+      <div class="code-block">
+        <pre><code class="language-csharp">public class TodoAppService : ApplicationService, ITodoAppService
+{
+    [HttpGet("api/todos/completed")]
+    public async Task<List<TodoItemDto>> GetCompletedTodosAsync()
+    {
+        var todoItems = await _todoItemRepository.GetListAsync(x => x.IsCompleted);
+        return ObjectMapper.Map<List<TodoItem>, List<TodoItemDto>>(todoItems);
+    }
+
+    [HttpPost("api/todos/bulk")]
+    public async Task<List<TodoItemDto>> CreateBulkAsync(List<CreateTodoItemDto> inputs)
+    {
+        var todoItems = new List<TodoItem>();
+        
+        foreach (var input in inputs)
+        {
+            var todoItem = new TodoItem { Text = input.Text };
+            await _todoItemRepository.InsertAsync(todoItem);
+            todoItems.Add(todoItem);
+        }
+        
+        return ObjectMapper.Map<List<TodoItem>, List<TodoItemDto>>(todoItems);
+    }
+}</code></pre>
+      </div>
+
+      <h4>8.1.8 API Explorer</h4>
+      <p>API Explorer là service cho phép investigate API structure bởi clients. Swagger sử dụng nó để tạo documentation và test UI.</p>
+
+      <p>API Explorer được tự động enable cho conventional HTTP API controllers. Bạn có thể control nó bằng <code>RemoteService</code> attribute:</p>
+
+      <div class="code-block">
+        <pre><code class="language-csharp">[RemoteService(IsMetadataEnabled = false)]
+public class PersonAppService : ApplicationService
+{
+    // Service này sẽ không xuất hiện trong API explorer/Swagger
+    // Nhưng vẫn có thể sử dụng nếu biết chính xác API path
+}</code></pre>
+      </div>
+
+      <h4>8.1.9 Replace or Remove Controllers</h4>
+      
+      <h5>Replace Controllers</h5>
+      <p>Bạn có thể replace built-in controllers bằng cách sử dụng <code>ReplaceControllersAttribute</code>:</p>
+
+      <div class="code-block">
+        <pre><code class="language-csharp">[ReplaceControllers(typeof(AbpApplicationConfigurationController))]
+[Area("abp")]
+[RemoteService(Name = "abp")]
+public class ReplaceBuiltInController : AbpController
+{
+    [HttpGet("api/abp/application-configuration")]
+    public virtual Task<MyApplicationConfigurationDto> GetAsync(MyApplicationConfigurationRequestOptions options)
+    {
+        return Task.FromResult(new MyApplicationConfigurationDto());
+    }
+}</code></pre>
+      </div>
+
+      <h5>Remove Controllers</h5>
+      <p>Configure <code>ControllersToRemove</code> của <code>AbpAspNetCoreMvcOptions</code> để remove controllers:</p>
+
+      <div class="code-block">
+        <pre><code class="language-csharp">services.Configure<AbpAspNetCoreMvcOptions>(options =>
+{
+    options.ControllersToRemove.Add(typeof(AbpLanguagesController));
+});</code></pre>
+      </div>
+
+      <h3>Lợi ích của Auto API Controllers</h3>
+      <ul>
+        <li><strong>Giảm boilerplate code:</strong> Không cần viết controller thủ công</li>
+        <li><strong>Consistency:</strong> Đảm bảo API endpoints nhất quán</li>
+        <li><strong>Convention over Configuration:</strong> Tuân theo naming conventions</li>
+        <li><strong>Flexibility:</strong> Có thể customize khi cần thiết</li>
+        <li><strong>Auto Documentation:</strong> Tự động tạo Swagger documentation</li>
+      </ul>
+    `
+  }
+];
+
 // --- Infrastructure Slides ---
 const infrastructureSlides = [
-  // 1. Audit Logging
+  // 1. Audit Logging - Nổi bật về security và compliance
   {
     id: 'infra-1',
     title: 'Audit Logging',
@@ -50,7 +509,7 @@ options.IgnoredTypes.Add(typeof(MyUser));
       <p><b>Kết luận:</b> Có thể hoàn toàn exclude/ignore các trường nhạy cảm mà bạn không muốn log trong audit log bằng attribute <code>[DisableAuditing]</code> trên từng property hoặc entity. Các thực thể, hoặc property không được đánh dấu <code>[Audited]</code>, hoặc có <code>[DisableAuditing]</code>, sẽ không xuất hiện trong cơ sở dữ liệu audit log, đạt yêu cầu tuân thủ bảo mật HIPAA và các tiêu chuẩn quản lý thông tin nhạy cảm.</p>
     `
   },
-  // 2. Background Jobs
+  // 2. Background Jobs - Nổi bật về async processing
   {
     id: 'infra-2',
     title: 'Background Jobs',
@@ -77,34 +536,9 @@ await _backgroundJobManager.EnqueueAsync(new EmailSendingArgs {
       <p><b>Lưu ý:</b> Có thể cấu hình ưu tiên, delay, tích hợp với Hangfire/RabbitMQ/Quartz qua NuGet.</p>
     `
   },
-  // 3. Background Workers
+  // 3. BLOB Storing - Nổi bật về file management
   {
     id: 'infra-3',
-    title: 'Background Workers',
-    subtitle: 'Worker nền, chạy định kỳ, liên tục',
-    content: `
-      <p>Background Workers là các thread chạy nền liên tục hoặc định kỳ (ví dụ: cleanup, đồng bộ dữ liệu). Khác với Background Jobs (chạy 1 lần), worker thường là singleton, chạy suốt vòng đời app.</p>
-      <ul>
-        <li>Dùng <code>AsyncPeriodicBackgroundWorkerBase</code> để tạo worker định kỳ</li>
-        <li>Đăng ký worker qua <code>IBackgroundWorkerManager</code></li>
-        <li>Chạy tốt trên môi trường cluster (nên dùng distributed lock)</li>
-      </ul>
-      <div class="code-block"><pre><code class="language-csharp">// Worker định kỳ 10 phút
-public class PassiveUserCheckerWorker : AsyncPeriodicBackgroundWorkerBase {
-    public PassiveUserCheckerWorker(AbpAsyncTimer timer, IServiceScopeFactory sf)
-        : base(timer, sf) { Timer.Period = 600000; }
-    protected override async Task DoWorkAsync(PeriodicBackgroundWorkerContext ctx) {
-        // Logic kiểm tra user không hoạt động
-    }
-}
-// Đăng ký worker
-await context.AddBackgroundWorkerAsync<PassiveUserCheckerWorker>();</code></pre></div>
-      <p><b>Lưu ý:</b> Nếu chạy nhiều instance, nên dùng distributed lock để tránh trùng lặp tác vụ.</p>
-    `
-  },
-  // 4. BLOB Storing
-  {
-    id: 'infra-4',
     title: 'BLOB Storing',
     subtitle: 'Lưu trữ BLOB (file, ảnh, video, ...)',
     content: `
@@ -129,83 +563,9 @@ Configure<AbpBlobStoringOptions>(options => {
 });</code></pre></div>
     `
   },
-  // 5. Cancellation Token Provider
+  // 4. Data Filtering - Nổi bật về multi-tenancy và soft delete
   {
-    id: 'infra-5',
-    title: 'Cancellation Token Provider',
-    subtitle: 'Quản lý hủy tác vụ bất đồng bộ',
-    content: `
-      <p><code>ICancellationTokenProvider</code> giúp lấy CancellationToken nhất quán cho các tác vụ async, tự động lấy từ <code>HttpContext.RequestAborted</code> trong ASP.NET Core.</p>
-      <ul>
-        <li>Tự động hóa truyền token cho các service async</li>
-        <li>Provider mặc định: HttpContext, Null (không bao giờ bị hủy)</li>
-      </ul>
-      <div class="code-block"><pre><code class="language-csharp">// Lấy CancellationToken
-var token = cancellationTokenProvider.Token;
-
-// Sử dụng trong service
-while (!cancellationTokenProvider.Token.IsCancellationRequested) {
-  await Task.Delay(1000, cancellationTokenProvider.Token);
-}</code></pre></div>
-    `
-  },
-  // 6. Anti-Forgery (CSRF)
-  {
-    id: 'infra-6',
-    title: 'Anti-Forgery (CSRF)',
-    subtitle: 'Chống tấn công CSRF/XSRF',
-    content: `
-      <p>ABP tự động bảo vệ CSRF qua cookie + header, không cần cấu hình thủ công. Có thể tuỳ chỉnh qua <code>AbpAntiForgeryOptions</code>.</p>
-      <ul>
-        <li>Server tạo token, client tự động gửi lại qua header</li>
-        <li>Thuộc tính: <code>[AbpAutoValidateAntiforgeryToken]</code>, <code>[AbpValidateAntiForgeryToken]</code>, <code>[AbpIgnoreAntiforgeryToken]</code></li>
-      </ul>
-      <div class="code-block"><pre><code class="language-csharp">// Cấu hình
-Configure<AbpAntiForgeryOptions>(options => {
-  options.TokenCookie.Name = "MY-XSRF-TOKEN";
-});
-
-[AbpValidateAntiForgeryToken]
-public IActionResult Post() { ... }</code></pre></div>
-    `
-  },
-  // 7. Concurrency Check
-  {
-    id: 'infra-7',
-    title: 'Concurrency Check',
-    subtitle: 'Kiểm soát truy cập đồng thời (Optimistic)',
-    content: `
-      <p>Kiểm soát đồng thời lạc quan với <code>IHasConcurrencyStamp</code>, tự động phát hiện xung đột khi nhiều người sửa cùng lúc.</p>
-      <ul>
-        <li>Entity/DTO triển khai <code>IHasConcurrencyStamp</code></li>
-        <li>ABP tự động kiểm tra, ném <code>AbpDbConcurrencyException</code> nếu xung đột</li>
-      </ul>
-      <div class="code-block"><pre><code class="language-csharp">public class Book : FullAuditedAggregateRoot<Guid> { }
-public class UpdateBookDto : IHasConcurrencyStamp { ... }
-
-// Trong UpdateAsync: gán ConcurrencyStamp từ DTO vào entity</code></pre></div>
-    `
-  },
-  // 8. Current User
-  {
-    id: 'infra-8',
-    title: 'Current User',
-    subtitle: 'Truy cập thông tin user hiện tại',
-    content: `
-      <p>Dịch vụ <code>ICurrentUser</code> giúp truy cập Id, UserName, TenantId, Roles, Email... của user hiện tại, dùng cho kiểm tra quyền, log, cá nhân hoá.</p>
-      <ul>
-        <li>Inject <code>ICurrentUser</code> vào service/controller</li>
-        <li>Các extension: <code>GetId()</code>, <code>IsInRole()</code>, <code>FindClaim()</code></li>
-      </ul>
-      <div class="code-block"><pre><code class="language-csharp">if (_currentUser.IsAuthenticated) {
-  var userId = _currentUser.Id;
-  var roles = _currentUser.Roles;
-}</code></pre></div>
-    `
-  },
-  // 9. Data Filtering
-  {
-    id: 'infra-9',
+    id: 'infra-4',
     title: 'Data Filtering',
     subtitle: 'Lọc dữ liệu động (soft-delete, multi-tenancy)',
     content: `
@@ -219,27 +579,9 @@ public class UpdateBookDto : IHasConcurrencyStamp { ... }
 }</code></pre></div>
     `
   },
-  // 10. Data Seeding
+  // 5. Distributed Locking - Nổi bật về scalability
   {
-    id: 'infra-10',
-    title: 'Data Seeding',
-    subtitle: 'Cung cấp dữ liệu ban đầu',
-    content: `
-      <p>Khởi tạo dữ liệu mẫu (admin, roles, cấu hình...) qua <code>IDataSeedContributor</code>. Chạy khi migrate hoặc khởi động app.</p>
-      <ul>
-        <li>Mỗi module có thể có seeder riêng</li>
-        <li>Inject service vào seeder, hỗ trợ multi-tenancy</li>
-      </ul>
-      <div class="code-block"><pre><code class="language-csharp">public class MyDataSeedContributor : IDataSeedContributor {
-  public async Task SeedAsync(DataSeedContext ctx) {
-    // Insert dữ liệu mẫu
-  }
-}</code></pre></div>
-    `
-  },
-  // 11. Distributed Locking
-  {
-    id: 'infra-11',
+    id: 'infra-5',
     title: 'Distributed Locking',
     subtitle: 'Đồng bộ truy cập tài nguyên trong môi trường phân tán',
     content: `
@@ -305,49 +647,9 @@ services.AddAbpDistributedLocking(options =>
       </div>
     `
   },
-  // 12. Emailing
+  // 6. Event Bus - Nổi bật về loose coupling
   {
-    id: 'infra-12',
-    title: 'Emailing',
-    subtitle: 'Gửi email qua IEmailSender',
-    content: `
-      <p>Gửi email qua <code>IEmailSender</code>, hỗ trợ MailKit, cấu hình SMTP động qua Setting Management.</p>
-      <ul>
-        <li>Inject <code>IEmailSender</code>, dùng <code>SendAsync</code> hoặc <code>QueueAsync</code></li>
-        <li>Cấu hình SMTP qua UI hoặc appsettings.json</li>
-      </ul>
-      <div class="code-block"><pre><code class="language-csharp">await _emailSender.SendAsync("to@example.com", "Subject", "Body");
-// Cấu hình SMTP trong appsettings.json
-{
-  "Settings": {
-    "Abp.Mailing.Smtp.Host": "smtp.domain.com"
-  }
-}</code></pre></div>
-    `
-  },
-  // 13. Entity Cache
-  {
-    id: 'infra-13',
-    title: 'Entity Cache',
-    subtitle: 'Cache thực thể, tự động invalidate',
-    content: `
-      <p>Cache entity theo khoá, tự động invalidate khi entity thay đổi. Dùng <code>IDistributedEntityCache</code>.</p>
-      <ul>
-        <li>Cache phân tán, tự động refresh khi update/delete</li>
-        <li>Cấu hình thời gian hết hạn cho từng entity</li>
-      </ul>
-      <div class="code-block"><pre><code class="language-csharp">var book = await _bookCache.GetAsync(id);
-// Cấu hình
-Configure<AbpDistributedCacheOptions>(options => {
-  options.EntityCacheOptions.Add(typeof(Book), new DistributedCacheEntryOptions {
-    SlidingExpiration = TimeSpan.FromMinutes(20)
-  });
-});</code></pre></div>
-    `
-  },
-  // 14. Event Bus
-  {
-    id: 'infra-14',
+    id: 'infra-6',
     title: 'Event Bus',
     subtitle: 'Bus sự kiện (Local/Distributed)',
     content: `
@@ -364,9 +666,9 @@ public class MyHandler : ILocalEventHandler<MyEventData> {
 }</code></pre></div>
     `
   },
-  // 15. Features System
+  // 7. Features System - Nổi bật về SaaS/multi-tenant
   {
-    id: 'infra-15',
+    id: 'infra-7',
     title: 'Features System',
     subtitle: 'Quản lý feature động, multi-tenant',
     content: `
@@ -380,78 +682,9 @@ public class MyHandler : ILocalEventHandler<MyEventData> {
 public class MyService { ... }</code></pre></div>
     `
   },
-  // 16. Global Features
+  // 8. Object Mapping - Nổi bật về productivity
   {
-    id: 'infra-16',
-    title: 'Global Features',
-    subtitle: 'Tính năng toàn cục, ảnh hưởng cấu trúc app',
-    content: `
-      <p>Global Features cho phép bật/tắt tính năng ở cấp phát triển (development time), ảnh hưởng đến việc đăng ký service, tạo bảng DB, ...</p>
-      <ul>
-        <li>Định nghĩa qua <code>[GlobalFeatureName]</code></li>
-        <li>Bật/tắt qua <code>GlobalFeatureManager.Instance.Enable()</code></li>
-      </ul>
-      <div class="code-block"><pre><code class="language-csharp">[GlobalFeatureName("Shopping.Payment")]
-public class PaymentFeature { }
-
-GlobalFeatureManager.Instance.Enable<PaymentFeature>();</code></pre></div>
-    `
-  },
-  // 17. GUID Generation
-  {
-    id: 'infra-17',
-    title: 'GUID Generation',
-    subtitle: 'Sinh GUID tuần tự, unique',
-    content: `
-      <p>Dùng <code>IGuidGenerator</code> để sinh GUID tuần tự, tối ưu cho DB, tránh dùng <code>Guid.NewGuid()</code> cho entity.</p>
-      <ul>
-        <li>Inject <code>IGuidGenerator</code>, dùng <code>Create()</code></li>
-        <li>Cấu hình loại sequential phù hợp DBMS</li>
-      </ul>
-      <div class="code-block"><pre><code class="language-csharp">var id = guidGenerator.Create();
-Configure<AbpSequentialGuidGeneratorOptions>(options => {
-  options.DefaultSequentialGuidType = SequentialGuidType.SequentialAtEnd;
-});</code></pre></div>
-    `
-  },
-  // 18. Image Manipulation
-  {
-    id: 'infra-18',
-    title: 'Image Manipulation',
-    subtitle: 'Tích hợp thư viện xử lý ảnh .NET',
-    content: `
-      <p>ABP không tích hợp sẵn xử lý ảnh, nhưng dễ dàng tích hợp ImageSharp, SkiaSharp, ... bằng cách tạo service riêng.</p>
-      <ul>
-        <li>Cài NuGet ImageSharp/SkiaSharp</li>
-        <li>Tạo service (IImageManipulator) để trừu tượng hóa</li>
-      </ul>
-      <div class="code-block"><pre><code class="language-csharp">// Ví dụ dùng ImageSharp
-using (var image = Image.Load(inputStream)) {
-  image.Mutate(x => x.Resize(200, 200));
-  image.Save(outputStream, new PngEncoder());
-}</code></pre></div>
-    `
-  },
-  // 19. JSON Serialization
-  {
-    id: 'infra-19',
-    title: 'JSON Serialization',
-    subtitle: 'Xử lý JSON, đổi thư viện dễ dàng',
-    content: `
-      <p>Dùng <code>IJsonSerializer</code> để serialize/deserialize object, dễ dàng chuyển đổi giữa System.Text.Json và Newtonsoft.Json.</p>
-      <ul>
-        <li>Inject <code>IJsonSerializer</code></li>
-        <li>Cấu hình format, date-time, ... qua <code>AbpJsonOptions</code></li>
-      </ul>
-      <div class="code-block"><pre><code class="language-csharp">var json = jsonSerializer.Serialize(obj);
-Configure<AbpJsonOptions>(options => {
-  options.OutputDateTimeFormat = "yyyy-MM-dd HH:mm:ss";
-});</code></pre></div>
-    `
-  },
-  // 20. Object Mapping
-  {
-    id: 'infra-20',
+    id: 'infra-8',
     title: 'Object Mapping',
     subtitle: 'Ánh xạ object giữa các layer',
     content: `
@@ -468,9 +701,9 @@ Configure<AbpJsonOptions>(options => {
 var dto = ObjectMapper.Map<User, UserDto>(user);</code></pre></div>
     `
   },
-  // 21. Settings Hierarchy
+  // 9. Settings Hierarchy - Nổi bật về configuration management
   {
-    id: 'infra-21',
+    id: 'infra-9',
     title: 'Settings Hierarchy',
     subtitle: 'Cài đặt động, phân cấp, mã hóa',
     content: `
@@ -484,109 +717,9 @@ var dto = ObjectMapper.Map<User, UserDto>(user);</code></pre></div>
 public class MySettingDefinitionProvider : SettingDefinitionProvider { ... }</code></pre></div>
     `
   },
-  // 23. SMS Sending
+  // 10. Virtual File System (VFS) - Nổi bật về modularity
   {
-    id: 'infra-23',
-    title: 'SMS Sending',
-    subtitle: 'Gửi SMS qua ISmsSender',
-    content: `
-      <p>Gửi SMS qua <code>ISmsSender</code>, dễ dàng tích hợp provider bên thứ ba (Twilio, Vonage, ...).</p>
-      <ul>
-        <li>Inject <code>ISmsSender</code>, dùng <code>SendAsync</code></li>
-        <li>Có thể custom provider, NullSmsSender mặc định (log ra file)</li>
-      </ul>
-      <div class="code-block"><pre><code class="language-csharp">await _smsSender.SendAsync("0123456789", "Your code: 1234");</code></pre></div>
-    `
-  },
-  // 24. String Encryption
-  {
-    id: 'infra-24',
-    title: 'String Encryption',
-    subtitle: 'Mã hóa/giải mã chuỗi (AES)',
-    content: `
-      <p>Dùng <code>IStringEncryptionService</code> để mã hóa/giải mã chuỗi (AES), bảo vệ dữ liệu nhạy cảm.</p>
-      <ul>
-        <li>Inject <code>IStringEncryptionService</code>, dùng <code>Encrypt</code> và <code>Decrypt</code></li>
-        <li>Cấu hình pass-phrase, salt qua <code>AbpStringEncryptionOptions</code></li>
-      </ul>
-      <div class="code-block"><pre><code class="language-csharp">var encrypted = stringEncryptionService.Encrypt("abc");
-var plain = stringEncryptionService.Decrypt(encrypted);
-Configure<AbpStringEncryptionOptions>(options => {
-  options.DefaultPassPhrase = "my-secret";
-});</code></pre></div>
-    `
-  },
-  // 25. Text Templating
-  {
-    id: 'infra-25',
-    title: 'Text Templating',
-    subtitle: 'Sinh nội dung động với template (Scriban)',
-    content: `
-      <p>Text Templating giúp sinh nội dung động (email, báo cáo, SMS) dựa trên template Scriban và model dữ liệu.</p>
-      <ul>
-        <li>Định nghĩa template qua <code>TemplateDefinitionProvider</code></li>
-        <li>Render template qua <code>ITemplateRenderer</code></li>
-      </ul>
-      <div class="code-block"><pre><code class="language-csharp">var result = await templateRenderer.RenderAsync("Hello", new { name = "John" });
-public class MyTemplateDefinitionProvider : TemplateDefinitionProvider { ... }</code></pre></div>
-    `
-  },
-  // 26. Timing
-  {
-    id: 'infra-26',
-    title: 'Timing',
-    subtitle: 'Quản lý thời gian và múi giờ trong môi trường phân tán',
-    content: `
-      <h3>Mục đích</h3>
-      <p>Hạ tầng chuyên biệt giúp <strong>quản lý thời gian, múi giờ</strong> trong ứng dụng phục vụ người dùng nhiều múi giờ khác nhau.</p>
-      
-      <h3>Tính năng</h3>
-      <ul>
-        <li>Cấu hình múi giờ qua setting <code>Abp.Timing.TimeZone</code></li>
-        <li>Service <code>IClock</code>, <code>ICurrentTimezoneProvider</code></li>
-        <li>Middleware <code>UseAbpTimeZone</code> tự động detect timezone</li>
-        <li>Lưu UTC, hiển thị theo múi giờ user</li>
-      </ul>
-
-      <h3>Lợi ích</h3>
-      <ul>
-        <li>Đảm bảo tính nhất quán dữ liệu trong multi-instance</li>
-        <li>Tự động chuyển đổi múi giờ</li>
-        <li>Chuẩn hóa DateTime, hỗ trợ DateTimeKind</li>
-        <li>API trả về ISO 8601 format</li>
-      </ul>
-
-      <div class="code-block">
-        <pre><code class="language-csharp">// Sử dụng IClock
-public class MeetingService : ApplicationService
-{
-    private readonly IClock _clock;
-    
-    public async Task<MeetingDto> CreateMeetingAsync(CreateMeetingDto input)
-    {
-        var meeting = new Meeting
-        {
-            StartTime = _clock.Normalize(input.StartTime), // Chuyển về UTC
-            CreatedTime = _clock.Now // Thời gian hiện tại UTC
-        };
-        
-        await _meetingRepository.InsertAsync(meeting);
-        return ObjectMapper.Map<Meeting, MeetingDto>(meeting);
-    }
-}
-
-// Cấu hình
-Configure<AbpClockOptions>(options =>
-{
-    options.Kind = DateTimeKind.Utc;
-});
-app.UseAbpTimeZone();</code></pre>
-      </div>
-    `
-  },
-  // 27. Virtual File System (VFS)
-  {
-    id: 'infra-27',
+    id: 'infra-10',
     title: 'Virtual File System (VFS)',
     subtitle: 'Quản lý file ảo, nhúng resource vào assembly',
     content: `
@@ -949,9 +1082,14 @@ public class MySettingDefinitionProvider : SettingDefinitionProvider
     public override void Define(ISettingDefinitionContext context)
     {
         context.Add(
-            new SettingDefinition("MyApp.Smtp.Host", "smtp.gmail.com"),
-            new SettingDefinition("MyApp.Smtp.Port", "587"),
-            new SettingDefinition("MyApp.Smtp.EnableSsl", "true")
+            new SettingDefinition(
+                "Smtp.Host", // Tên setting
+                "127.0.0.1", // Giá trị mặc định
+                L("DisplayName:Smtp.Host"), // Tên hiển thị (đã được localize)
+                L("Description:Smtp.Host"), // Mô tả
+                isVisibleToClients: false, // Client có được thấy setting này không?
+                isEncrypted: false // Có mã hóa giá trị khi lưu trong DB không?
+            )
         );
     }
 }
@@ -1027,5 +1165,5 @@ Install-Package Volo.Abp.VirtualFileExplorer.Web</code></pre>
 
 // Merge Infrastructure trước, rồi đến Module
 if (window.presentationData) {
-    window.presentationData.slides = window.presentationData.slides.concat(infrastructureSlides, moduleSlides);
+    window.presentationData.slides = window.presentationData.slides.concat(coreConceptsSlides, infrastructureSlides, moduleSlides);
 } 

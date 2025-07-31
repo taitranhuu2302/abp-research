@@ -13,7 +13,6 @@ const presentationData = {
                 <ul>
                     <li><strong>Phát triển nhanh</strong>: Đạt được thông qua các công cụ scaffolding, các module có sẵn, tự động tạo API và các component UI tích hợp.</li>
                     <li><strong>Tính năng sẵn sàng cho doanh nghiệp</strong>: Bao gồm hỗ trợ sẵn cho multi-tenancy, microservices, bảo mật nâng cao (OAuth 2.0, OpenIdConnect, JWT), tối ưu hóa hiệu suất (caching, async/await) và khả năng mở rộng.</li>
-                    <li><strong>Trải nghiệm nhà phát triển</strong>: Cung cấp IntelliSense, hỗ trợ testing tích hợp, tài liệu toàn diện và cộng đồng tích cực.</li>
                     <li><strong>Lợi ích kiến trúc</strong>: Tuân thủ Clean Architecture và SOLID principles, đảm bảo tách biệt các mối quan tâm, khả năng test cao và dễ bảo trì thông qua cấu trúc modular.</li>
                 </ul>
             `
