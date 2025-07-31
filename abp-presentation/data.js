@@ -29,10 +29,8 @@ const presentationData = {
                     <li><b>Kiến trúc phân lớp (Layered Architecture):</b> Tổ chức code theo các layer (Domain, Application, Infrastructure, Presentation), tách biệt rõ ràng, dễ mở rộng/bảo trì.</li>
                     <li><b>Domain-Driven Design (DDD):</b> Tập trung vào nghiệp vụ cốt lõi, mô hình hóa domain, giảm phụ thuộc vào data access.</li>
                     <li><b>Modular (Tính mô-đun):</b> Ứng dụng chia thành các module độc lập, dễ tái sử dụng, mở rộng, mỗi module có thể có đủ các layer.</li>
-                    <li><b>Dependency Injection:</b> Giảm phụ thuộc, tăng khả năng kiểm thử, mở rộng hệ thống.</li>
                     <li><b>Repository Pattern & Unit Of Work:</b> Tách biệt logic kinh doanh với truy cập dữ liệu, quản lý giao dịch nhất quán.</li>
                     <li><b>Microservice & Multitenancy:</b> Hỗ trợ xây dựng microservice và hệ thống đa tenant (nhiều tổ chức dùng chung nền tảng, dữ liệu tách biệt).</li>
-                    <li><b>Clean Architecture:</b> Thiết kế "mã sạch", dễ đọc, dễ bảo trì, giảm coupling, tăng cohesion.</li>
                     <li><b>Tích hợp bảo mật (Authentication & Authorization):</b> Sẵn sàng xác thực, phân quyền, tương thích IdentityServer, OAuth, ...</li>
                     <li><b>Đa ngôn ngữ (Localization):</b> Hỗ trợ xây dựng ứng dụng đa ngôn ngữ ngay từ framework.</li>
                     <li><b>Hạ tầng & công cụ sinh mã:</b> Audit Logging, cấu hình tập trung, code generation, ... giúp tăng tốc phát triển.</li>
@@ -85,21 +83,6 @@ test/
                         <tr><td><code>*.DbMigrator</code></td><td>Console migrate & seed database</td></tr>
                     </tbody>
                 </table>
-                <h3>3. Mối quan hệ phụ thuộc giữa các layer</h3>
-                <ul>
-                    <li><code>*.Domain.Shared</code> là nền tảng, các project khác phụ thuộc trực tiếp/gián tiếp</li>
-                    <li><code>*.Domain</code> phụ thuộc <code>*.Domain.Shared</code></li>
-                    <li><code>*.Application.Contracts</code> phụ thuộc <code>*.Domain.Shared</code></li>
-                    <li><code>*.Application</code> phụ thuộc <code>*.Domain</code> và <code>*.Application.Contracts</code></li>
-                    <li><code>*.EntityFrameworkCore</code> phụ thuộc <code>*.Domain</code></li>
-                    <li><code>*.HttpApi</code> phụ thuộc <code>*.Application.Contracts</code></li>
-                    <li><code>*.Web</code> phụ thuộc <code>*.HttpApi</code></li>
-                </ul>
-                <h3>4. Dạng solution tiered</h3>
-                <ul>
-                    <li>Hỗ trợ tách biệt WebApp, API, AuthServer trên các server khác nhau</li>
-                    <li>Phù hợp triển khai hệ thống lớn, bảo mật, mở rộng tốt</li>
-                </ul>
                 <p><b>Kết luận:</b> Cấu trúc ABP giúp tách biệt domain, business logic, data access, API, UI, hỗ trợ phát triển, mở rộng, kiểm thử hiệu quả.</p>
             `
         }

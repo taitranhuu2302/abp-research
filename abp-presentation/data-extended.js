@@ -46,7 +46,6 @@ public class MyUser : Entity<Guid> {
 // Ignore toàn bộ entity/type
 options.IgnoredTypes.Add(typeof(MyUser));
 </code></pre></div>
-      <p><b>Bảo mật thông tin nhạy cảm (HIPAA):</b> ABP hỗ trợ loại trừ (ignore/exclude) các property hoặc entity không muốn ghi log bằng <code>[DisableAuditing]</code> hoặc cấu hình <code>AbpAuditingOptions.IgnoredTypes</code>. Điều này rất phù hợp với các yêu cầu bảo mật như HIPAA, giúp tránh log các trường nhạy cảm (số căn cước, email, mật khẩu, ...).</p>
       <p>Có thể cấu hình nâng cao bằng lambda selector để log chi tiết hơn cho các class, module, hoặc property đạt điều kiện tùy chọn.</p>
       <p><b>Kết luận:</b> Có thể hoàn toàn exclude/ignore các trường nhạy cảm mà bạn không muốn log trong audit log bằng attribute <code>[DisableAuditing]</code> trên từng property hoặc entity. Các thực thể, hoặc property không được đánh dấu <code>[Audited]</code>, hoặc có <code>[DisableAuditing]</code>, sẽ không xuất hiện trong cơ sở dữ liệu audit log, đạt yêu cầu tuân thủ bảo mật HIPAA và các tiêu chuẩn quản lý thông tin nhạy cảm.</p>
     `
@@ -483,24 +482,6 @@ var dto = ObjectMapper.Map<User, UserDto>(user);</code></pre></div>
       </ul>
       <div class="code-block"><pre><code class="language-csharp">var smtpHost = await SettingProvider.GetOrNullAsync("Smtp.Host");
 public class MySettingDefinitionProvider : SettingDefinitionProvider { ... }</code></pre></div>
-    `
-  },
-  // 22. Simple State Checker
-  {
-    id: 'infra-22',
-    title: 'Simple State Checker',
-    subtitle: 'Kiểm tra trạng thái động cho object',
-    content: `
-      <p>Kiểm tra trạng thái enable/disable cho object (menu, permission, ...), dùng <code>ISimpleStateChecker&lt;T&gt;</code>.</p>
-      <ul>
-        <li>Triển khai <code>ISimpleStateChecker&lt;T&gt;</code> cho logic kiểm tra</li>
-        <li>Dùng <code>ISimpleStateCheckerManager&lt;T&gt;</code> để kiểm tra trạng thái</li>
-      </ul>
-      <div class="code-block"><pre><code class="language-csharp">public class MyChecker : ISimpleStateChecker<MyObject> {
-  public Task<bool> IsEnabledAsync(SimpleStateCheckerContext<MyObject> ctx) {
-    return Task.FromResult(true);
-  }
-}</code></pre></div>
     `
   },
   // 23. SMS Sending
