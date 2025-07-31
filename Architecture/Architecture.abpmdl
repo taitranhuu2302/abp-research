@@ -1,0 +1,133 @@
+{
+  "template": "app",
+  "imports": {
+    "Volo.Abp.LeptonXTheme": {
+      "version": "4.2.0",
+      "isInstalled": true
+    },
+    "Volo.Abp.TextTemplateManagement": {
+      "version": "9.2.0",
+      "isInstalled": true
+    },
+    "Volo.Chat": {
+      "version": "9.2.0",
+      "isInstalled": true
+    },
+    "Volo.Abp.LanguageManagement": {
+      "version": "9.2.0",
+      "isInstalled": true
+    },
+    "Volo.FileManagement": {
+      "version": "9.2.0",
+      "isInstalled": true
+    },
+    "Volo.Abp.OpenIddict.Pro": {
+      "version": "9.2.0",
+      "isInstalled": true
+    },
+    "Volo.Abp.Gdpr": {
+      "version": "9.2.0",
+      "isInstalled": true
+    },
+    "Volo.Abp.AuditLogging.Pro": {
+      "version": "9.2.0",
+      "isInstalled": true
+    },
+    "Volo.CmsKit.Pro": {
+      "version": "9.2.0",
+      "isInstalled": true
+    },
+    "Volo.Saas": {
+      "version": "9.2.0",
+      "isInstalled": true
+    },
+    "Volo.Abp.Identity.Pro": {
+      "version": "9.2.0",
+      "isInstalled": true
+    },
+    "Volo.Abp.Account.Pro": {
+      "version": "9.2.0",
+      "isInstalled": true
+    },
+    "Volo.Abp.SettingManagement": {
+      "version": "9.2.0",
+      "isInstalled": true
+    },
+    "Volo.Abp.PermissionManagement": {
+      "version": "9.2.0",
+      "isInstalled": true
+    },
+    "Volo.Abp.FeatureManagement": {
+      "version": "9.2.0",
+      "isInstalled": true
+    }
+  },
+  "folders": {
+    "items": {
+      "src": {},
+      "test": {}
+    }
+  },
+  "packages": {
+    "Architecture.Application": {
+      "path": "src/Architecture.Application/Architecture.Application.abppkg",
+      "folder": "src"
+    },
+    "Architecture.Application.Tests": {
+      "path": "test/Architecture.Application.Tests/Architecture.Application.Tests.abppkg",
+      "folder": "test"
+    },
+    "Architecture.Domain.Shared": {
+      "path": "src/Architecture.Domain.Shared/Architecture.Domain.Shared.abppkg",
+      "folder": "src"
+    },
+    "Architecture.Application.Contracts": {
+      "path": "src/Architecture.Application.Contracts/Architecture.Application.Contracts.abppkg",
+      "folder": "src"
+    },
+    "Architecture.HttpApi": {
+      "path": "src/Architecture.HttpApi/Architecture.HttpApi.abppkg",
+      "folder": "src"
+    },
+    "Architecture.HttpApi.Client": {
+      "path": "src/Architecture.HttpApi.Client/Architecture.HttpApi.Client.abppkg",
+      "folder": "src"
+    },
+    "Architecture.EntityFrameworkCore.Tests": {
+      "path": "test/Architecture.EntityFrameworkCore.Tests/Architecture.EntityFrameworkCore.Tests.abppkg",
+      "folder": "test"
+    },
+    "Architecture.EntityFrameworkCore": {
+      "path": "src/Architecture.EntityFrameworkCore/Architecture.EntityFrameworkCore.abppkg",
+      "folder": "src"
+    },
+    "Architecture.TestBase": {
+      "path": "test/Architecture.TestBase/Architecture.TestBase.abppkg",
+      "folder": "test"
+    },
+    "Architecture.Domain.Tests": {
+      "path": "test/Architecture.Domain.Tests/Architecture.Domain.Tests.abppkg",
+      "folder": "test"
+    },
+    "Architecture.HttpApi.Client.ConsoleTestApp": {
+      "path": "test/Architecture.HttpApi.Client.ConsoleTestApp/Architecture.HttpApi.Client.ConsoleTestApp.abppkg",
+      "folder": "test"
+    },
+    "Architecture.DbMigrator": {
+      "path": "src/Architecture.DbMigrator/Architecture.DbMigrator.abppkg",
+      "folder": "src"
+    },
+    "Architecture.HttpApi.Host": {
+      "path": "src/Architecture.HttpApi.Host/Architecture.HttpApi.Host.abppkg",
+      "folder": "src"
+    },
+    "Architecture.Web.Public": {
+      "path": "src/Architecture.Web.Public/Architecture.Web.Public.abppkg",
+      "folder": "src"
+    },
+    "Architecture.Domain": {
+      "path": "src/Architecture.Domain/Architecture.Domain.abppkg",
+      "folder": "src"
+    }
+  }
+}

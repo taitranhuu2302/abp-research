@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-{{ .Chart.Name }}-configmap
+data:
+  dynamic-env.json: |-
+    {
+        "production": "true",
+        "application": {
+            "baseUrl": "{{ include "architecture.hosts.angular" . }}",
+            "name": "Architecture",
+            "logoUrl": ""
+        },
+        "oAuthConfig": {
+            "issuer": "{{ include "architecture.hosts.httpapi" . }}",
+            "redirectUri": "{{ include "architecture.hosts.angular" . }}",
+            "requireHttps": "true",
+            "clientId": "Architecture_App",
+            "responseType": "code",
+            "scope": "offline_access Architecture",
+            "strictDiscoveryDocumentValidation": false,
+            "skipIssuerCheck": true
+        },
+        "apis": {
+            "default": {
+                "url": "{{ include "architecture.hosts.httpapi" . }}",
+                "rootNamespace": "Architecture"
+            }
+        }
+    }

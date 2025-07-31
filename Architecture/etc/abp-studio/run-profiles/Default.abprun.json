@@ -1,0 +1,45 @@
+﻿{
+  "applications": {
+    "Architecture.Web.Public": {
+      "type": "dotnet-project",
+      "launchUrl": "https://localhost:44333",
+      "path": "../../../src/Architecture.Web.Public/Architecture.Web.Public.csproj",
+      "kubernetesService": ".*-webpublic$",
+      "healthCheckEndpoint": "/health-status",
+      "healthUiEndpoint": "/health-ui",
+      "execution": {
+        "order": 1
+      }
+    },
+    "Architecture.HttpApi.Host": {
+      "type": "dotnet-project",
+      "launchUrl": "https://localhost:44388",
+      "path": "../../../src/Architecture.HttpApi.Host/Architecture.HttpApi.Host.csproj",
+      "kubernetesService": ".*-httpapihost$",
+      "healthCheckEndpoint": "/health-status",
+      "healthUiEndpoint": "/health-ui",
+      "execution": {
+        "order": 4
+      }
+    },
+    "Architecture.Angular": {
+      "type": "cli",
+      "workingDirectory": "../../../angular",
+      "startCommand": "./start.ps1",
+      "launchUrl": "http://localhost:4200",
+      "kubernetesService": ".*-angular$",
+      "execution": {
+        "order": 2
+      }    
+    }
+  },
+  "containers": {
+    "serviceName": "Architecture-Containers",
+    "files": {
+      "../../docker/containers/redis.yml": {
+      },
+      "../../docker/containers/rabbitmq.yml": {
+      }
+    }
+  }
+}

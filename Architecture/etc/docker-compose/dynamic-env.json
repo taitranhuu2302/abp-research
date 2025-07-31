@@ -1,0 +1,25 @@
+{
+  "production": true,
+  "application": {
+    "baseUrl":"http://localhost:4200",
+    "name": "Architecture",
+    "logoUrl": ""
+  },
+  "oAuthConfig": {
+    "issuer": "https://localhost:44388/",
+    "redirectUri": "http://localhost:4200",
+    "clientId": "Architecture_App",
+    "responseType": "code",
+    "scope": "offline_access openid profile email phone Architecture"
+  },
+  "apis": {
+    "default": {
+      "url": "https://localhost:44388",
+      "rootNamespace": "Architecture"
+    },
+    "AbpAccountPublic": {
+      "url": "https://localhost:44388",
+      "rootNamespace": "AbpAccountPublic"
+    }
+  }
+}

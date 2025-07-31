@@ -242,16 +242,68 @@ public class UpdateBookDto : IHasConcurrencyStamp { ... }
   {
     id: 'infra-11',
     title: 'Distributed Locking',
-    subtitle: 'Khóa phân tán (Redis/SQL)',
+    subtitle: 'Đồng bộ truy cập tài nguyên trong môi trường phân tán',
     content: `
-      <p>Khóa phân tán đảm bảo chỉ 1 tiến trình truy cập tài nguyên dùng chung (Redis, SQL, ...). Dùng <code>IAbpDistributedLock</code>.</p>
+      <h3>Mục đích</h3>
+      <p>Distributed Locking là cơ chế giúp <strong>đồng bộ truy cập tài nguyên dùng chung</strong> giữa nhiều instance của ứng dụng, đặc biệt cần thiết khi chạy trong môi trường phân tán (nhiều web server, container, microservices).</p>
+      
+      <h3>Ý nghĩa</h3>
+      <p>Distributed Lock đảm bảo tại một thời điểm chỉ có <strong>một instance</strong> được phép truy cập, sửa đổi tài nguyên quan trọng để tránh:</p>
       <ul>
-        <li>Provider: Redis, SQL, ZooKeeper...</li>
-        <li>Inject <code>IAbpDistributedLock</code> vào service</li>
+        <li>Race condition</li>
+        <li>Hỏng dữ liệu do nhiều tiến trình cùng thao tác</li>
+        <li>Trùng lặp tác vụ định kỳ</li>
+        <li>Xung đột khi cập nhật số dư, đơn hàng</li>
       </ul>
-      <div class="code-block"><pre><code class="language-csharp">await using (var handle = await _distributedLock.TryAcquireAsync("MyLock")) {
-  if (handle != null) { /* critical section */ }
-}</code></pre></div>
+
+      <h3>Cách hoạt động</h3>
+      <p>ABP Framework triển khai Distributed Lock dựa trên thư viện bên ngoài (Medallion DistributedLock) và cung cấp service <code>IAbpDistributedLock</code> để lập trình viên dễ sử dụng.</p>
+      
+      <h3>Cấu hình</h3>
+      <ul>
+        <li>Cài đặt package <code>Volo.Abp.DistributedLocking</code></li>
+        <li>Cấu hình provider: Redis, ZooKeeper, SQL Server</li>
+        <li>Inject <code>IAbpDistributedLock</code> qua dependency injection</li>
+      </ul>
+
+      <h3>Vì sao phải dùng Distributed Lock</h3>
+      <p>Khi ứng dụng scale out, các biến lock thông thường (trong memory/process) sẽ không còn hiệu quả vì mỗi instance là một vùng nhớ tách biệt. Distributed Lock giải quyết bằng cơ chế khóa toàn hệ thống thông qua Redis, DB hoặc dịch vụ bên ngoài.</p>
+
+      <div class="code-block">
+        <pre><code class="language-csharp">// Sử dụng Distributed Lock
+public class OrderService : ApplicationService
+{
+    private readonly IAbpDistributedLock _distributedLock;
+    
+    public OrderService(IAbpDistributedLock distributedLock)
+    {
+        _distributedLock = distributedLock;
+    }
+    
+    public async Task ProcessOrderAsync(string orderId)
+    {
+        await using (var handle = await _distributedLock.TryAcquireAsync($"Order_{orderId}"))
+        {
+            if (handle != null)
+            {
+                // Critical section - chỉ 1 instance được thực thi
+                await ProcessOrderInternalAsync(orderId);
+            }
+            else
+            {
+                // Lock không khả dụng, có thể retry hoặc bỏ qua
+                throw new BusinessException("Order is being processed by another instance");
+            }
+        }
+    }
+}
+
+// Cấu hình provider (Redis)
+services.AddAbpDistributedLocking(options =>
+{
+    options.UseRedis(redisConnectionString);
+});</code></pre>
+      </div>
     `
   },
   // 12. Emailing
@@ -502,33 +554,116 @@ public class MyTemplateDefinitionProvider : TemplateDefinitionProvider { ... }</
   {
     id: 'infra-26',
     title: 'Timing',
-    subtitle: 'Quản lý thời gian, timezone, chuẩn hóa UTC',
+    subtitle: 'Quản lý thời gian và múi giờ trong môi trường phân tán',
     content: `
-      <p>Dùng <code>IClock</code> để lấy thời gian hiện tại (UTC), chuẩn hóa DateTime, quản lý timezone động qua setting.</p>
+      <h3>Mục đích</h3>
+      <p>Hạ tầng chuyên biệt giúp <strong>quản lý thời gian, múi giờ</strong> trong ứng dụng phục vụ người dùng nhiều múi giờ khác nhau.</p>
+      
+      <h3>Tính năng</h3>
       <ul>
-        <li>Inject <code>IClock</code>, dùng <code>Now</code>, <code>Normalize</code></li>
-        <li>Cấu hình <code>AbpClockOptions</code> để luôn dùng UTC</li>
+        <li>Cấu hình múi giờ qua setting <code>Abp.Timing.TimeZone</code></li>
+        <li>Service <code>IClock</code>, <code>ICurrentTimezoneProvider</code></li>
+        <li>Middleware <code>UseAbpTimeZone</code> tự động detect timezone</li>
+        <li>Lưu UTC, hiển thị theo múi giờ user</li>
       </ul>
-      <div class="code-block"><pre><code class="language-csharp">var now = clock.Now;
-Configure<AbpClockOptions>(options => {
-  options.Kind = DateTimeKind.Utc;
-});</code></pre></div>
+
+      <h3>Lợi ích</h3>
+      <ul>
+        <li>Đảm bảo tính nhất quán dữ liệu trong multi-instance</li>
+        <li>Tự động chuyển đổi múi giờ</li>
+        <li>Chuẩn hóa DateTime, hỗ trợ DateTimeKind</li>
+        <li>API trả về ISO 8601 format</li>
+      </ul>
+
+      <div class="code-block">
+        <pre><code class="language-csharp">// Sử dụng IClock
+public class MeetingService : ApplicationService
+{
+    private readonly IClock _clock;
+    
+    public async Task<MeetingDto> CreateMeetingAsync(CreateMeetingDto input)
+    {
+        var meeting = new Meeting
+        {
+            StartTime = _clock.Normalize(input.StartTime), // Chuyển về UTC
+            CreatedTime = _clock.Now // Thời gian hiện tại UTC
+        };
+        
+        await _meetingRepository.InsertAsync(meeting);
+        return ObjectMapper.Map<Meeting, MeetingDto>(meeting);
+    }
+}
+
+// Cấu hình
+Configure<AbpClockOptions>(options =>
+{
+    options.Kind = DateTimeKind.Utc;
+});
+app.UseAbpTimeZone();</code></pre>
+      </div>
     `
   },
   // 27. Virtual File System (VFS)
   {
     id: 'infra-27',
     title: 'Virtual File System (VFS)',
-    subtitle: 'Hệ thống tệp ảo, nhúng resource, override',
+    subtitle: 'Quản lý file ảo, nhúng resource vào assembly',
     content: `
-      <p>VFS cho phép nhúng file (JS, CSS, template, ...) vào assembly, override bằng file vật lý, quản lý resource module hóa.</p>
+      <h3>Mục đích</h3>
+      <p>Hạ tầng cho phép quản lý file không nhất thiết tồn tại vật lý trên ổ đĩa, chủ yếu để <strong>nhúng JS, CSS, ảnh, localization</strong> vào assembly và sử dụng như file vật lý tại runtime.</p>
+      
+      <h3>Loại file được quản lý</h3>
       <ul>
-        <li>Nhúng file qua <code>&lt;EmbeddedResource&gt;</code> trong .csproj</li>
-        <li>Đăng ký với <code>AbpVirtualFileSystemOptions</code></li>
-        <li>Truy cập file qua <code>IVirtualFileProvider</code></li>
+        <li><strong>Embedded files:</strong> File nhúng vào assembly (en.json, JS, CSS, ảnh...)</li>
+        <li><strong>Physical files:</strong> File thường lưu ngoài đĩa (wwwroot, views...)</li>
+        <li><strong>Dynamic files:</strong> File sinh động trong quá trình chạy</li>
       </ul>
-      <div class="code-block"><pre><code class="language-csharp">var fileInfo = _virtualFileProvider.GetFileInfo("/MyResources/js/test.js");
-var content = fileInfo.ReadAsString();</code></pre></div>
+
+      <h3>Lợi ích</h3>
+      <ul>
+        <li><strong>Đóng gói tài nguyên:</strong> Deploy gọn, không cần copy file phụ bên ngoài</li>
+        <li><strong>Tối ưu modularity:</strong> Module đóng gói tài nguyên thành khối duy nhất</li>
+        <li><strong>Dễ mở rộng:</strong> Override file module khác bằng virtual path</li>
+        <li><strong>Truy cập nhất quán:</strong> API chung cho file vật lý và embedded</li>
+        <li><strong>Hỗ trợ localization:</strong> File dịch đa ngôn ngữ tự động nhúng</li>
+      </ul>
+
+      <div class="code-block">
+        <pre><code class="language-csharp">// Nhúng file vào assembly
+&lt;ItemGroup&gt;
+  &lt;EmbeddedResource Include="Resources\en.json" /&gt;
+  &lt;EmbeddedResource Include="wwwroot\js\app.js" /&gt;
+&lt;/ItemGroup&gt;
+
+// Đăng ký với VFS
+Configure&lt;AbpVirtualFileSystemOptions&gt;(options =&gt;
+{
+    options.FileSets.AddEmbedded&lt;MyModule&gt;();
+});
+
+// Truy cập file
+public class ResourceService
+{
+    private readonly IVirtualFileProvider _virtualFileProvider;
+    
+    public ResourceService(IVirtualFileProvider virtualFileProvider)
+    {
+        _virtualFileProvider = virtualFileProvider;
+    }
+    
+    public string GetLocalizationFile()
+    {
+        var fileInfo = _virtualFileProvider.GetFileInfo("/Resources/en.json");
+        return fileInfo.ReadAsString();
+    }
+    
+    public string GetJavaScriptFile()
+    {
+        var fileInfo = _virtualFileProvider.GetFileInfo("/js/app.js");
+        return fileInfo.ReadAsString();
+    }
+}</code></pre>
+      </div>
     `
   }
 ];

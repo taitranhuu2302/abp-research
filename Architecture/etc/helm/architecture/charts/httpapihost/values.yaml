@@ -1,0 +1,4 @@
+image:
+  repository: "architecture/httpapihost"
+  tag: "latest"
+  pullPolicy: IfNotPresent

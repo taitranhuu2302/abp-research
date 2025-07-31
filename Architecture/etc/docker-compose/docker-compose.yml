@@ -1,0 +1,134 @@
+services:
+  architecture-angular:
+    image: architecture-angular:latest
+    container_name: architecture-angular
+    build:
+      context: ../../
+      dockerfile: angular/Dockerfile.local
+    ports:
+      - "4200:80"
+    depends_on:
+      - architecture-api
+    volumes:
+      - ./dynamic-env.json://usr/share/nginx/html/dynamic-env.json
+    networks:
+      - abp-network
+
+  architecture-api:
+    image: architecture-api:latest
+    container_name: architecture-api
+    hostname: architecture-api
+    build:
+      context: ../../
+      dockerfile: src/Architecture.HttpApi.Host/Dockerfile.local
+    environment:
+      - ASPNETCORE_URLS=https://+:8081;http://+:8080;
+      - Kestrel__Certificates__Default__Path=/app/certs/localhost.pfx
+      - Kestrel__Certificates__Default__Password=c3554439-193e-42fe-8d73-b26e49c9b9f3
+      - App__SelfUrl=https://localhost:44337
+      - App__AngularUrl=http://localhost:4200
+      - App_CorsOrigins=http://localhost:4200
+      - App__HealthCheckUrl=http://architecture-api:8080/health-status
+      - AuthServer__RequireHttpsMetadata=false
+      - AuthServer__Authority=https://localhost:44388
+      - App__RedirectAllowedUrls=http://localhost:4200
+      - App__MVCPublicUrl=https://localhost:44333
+      - ConnectionStrings__Default=User ID=postgres;Password=myPassw0rd;Host=postgres;Port=5432;Database=Architecture;Pooling=false;
+      - Redis__Configuration=redis
+    ports:
+      - "44388:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: on-failure    
+    volumes:
+      - ./certs:/app/certs
+    networks:
+      - abp-network
+  
+
+  architecture-web-public:
+    image: architecture-web-public:latest
+    container_name: architecture-web-public
+    build:
+      context: ../../
+      dockerfile: src/Architecture.Web.Public/Dockerfile.local
+    environment:
+      - ASPNETCORE_URLS=https://+:8081;http://+:8080;
+      - Kestrel__Certificates__Default__Path=/app/certs/localhost.pfx
+      - Kestrel__Certificates__Default__Password=c3554439-193e-42fe-8d73-b26e49c9b9f3
+      - App__SelfUrl=https://localhost:44333
+      - App__HealthCheckUrl=http://architecture-web-public:8080/health-status
+      - AuthServer__RequireHttpsMetadata=false
+      - AuthServer__IsOnK8s=true      
+      - RemoteServices__Default__BaseUrl=http://architecture-api:8080
+      - AuthServer__Authority=https://localhost:44388/
+      - AuthServer__MetaAddress=http://architecture-api:8080
+      - ConnectionStrings__Default=User ID=postgres;Password=myPassw0rd;Host=postgres;Port=5432;Database=Architecture;Pooling=false;
+      - Redis__Configuration=redis
+    ports:
+      - "44333:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: on-failure
+    volumes:
+      - ./certs:/app/certs
+    networks:
+      - abp-network  
+  db-migrator:
+    image: architecture-db-migrator:latest
+    container_name: db-migrator
+    build:
+      context: ../../
+      dockerfile: src/Architecture.DbMigrator/Dockerfile.local
+    environment:
+      - OpenIddict__Applications__Architecture_App__RootUrl=http://localhost:4200
+      - OpenIddict__Applications__Architecture_Swagger__RootUrl=https://localhost:44388
+      - OpenIddict__Applications__Architecture_Web_Public__RootUrl=https://localhost:44333
+      - ConnectionStrings__Default=User ID=postgres;Password=myPassw0rd;Host=postgres;Port=5432;Database=Architecture;Pooling=false;
+      - Redis__Configuration=redis
+    restart: on-failure
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - abp-network    
+  
+  postgres:
+    container_name: postgres-db
+    image: postgres:14.1
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "myPassw0rd"
+    volumes:
+      - postgres_data:/var/opt/postgres
+    networks: 
+      - abp-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5    
+  redis:
+    container_name: redis
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - abp-network  
+    healthcheck:
+      test: ["CMD", "redis-cli","ping"]      
+volumes:
+  postgres_data:
+    name: architecture_postgres_data
+networks:
+  abp-network:
+    name: architecture-network
+    driver: bridge

@@ -1,0 +1,4 @@
+image:
+  repository: "architecture/angular"
+  tag: "latest"
+  pullPolicy: IfNotPresent
